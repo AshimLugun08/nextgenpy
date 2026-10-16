@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% block title %}Add Vehicle{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_vehicles' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div><h1>Add New Vehicle</h1><p>Register a new vehicle to the fleet</p></div>
+    </div>
+</div>
+
+<form class="admin-form" method="POST" action="{% url 'admin_vehicle_form' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="detail-card">
+                <h5>Basic Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Brand *</label><input type="text" class="form-control" name="brand" placeholder="e.g. Honda" required></div>
+                    <div class="col-md-6"><label class="form-label">Model *</label><input type="text" class="form-control" name="model" placeholder="e.g. Activa 6G" required></div>
+                    <div class="col-md-4"><label class="form-label">Vehicle Type *</label><select class="form-select" name="vehicle_type"><option>Scooter</option><option>Bike</option><option>EV</option></select></div>
+                    <div class="col-md-4"><label class="form-label">Fuel Type *</label><select class="form-select" name="fuel_type"><option>Petrol</option><option>Electric</option></select></div>
+                    <div class="col-md-4"><label class="form-label">Year *</label><input type="number" class="form-control" name="year" value="2024"></div>
+                    <div class="col-md-6"><label class="form-label">Vehicle Number *</label><input type="text" class="form-control" name="vehicle_number" placeholder="e.g. JH01 AB 1234" required></div>
+                    <div class="col-md-6"><label class="form-label">Color</label><input type="text" class="form-control" name="color" placeholder="e.g. Pearl White" value="Pearl White"></div>
+                    <div class="col-md-6"><label class="form-label">Engine Number</label><input type="text" class="form-control" name="engine_number" placeholder="Engine number"></div>
+                    <div class="col-md-6"><label class="form-label">Chassis Number</label><input type="text" class="form-control" name="chassis_number" placeholder="Chassis number"></div>
+                    <div class="col-md-4"><label class="form-label">Engine Capacity</label><input type="text" class="form-control" name="engine_capacity" placeholder="e.g. 109.51 cc"></div>
+                    <div class="col-md-4"><label class="form-label">Current Mileage</label><input type="text" class="form-control" name="odometer_reading" placeholder="e.g. 0 km"></div>
+                    <div class="col-md-4"><label class="form-label">Category</label>
+                        <select class="form-select" name="category" required>
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-card">
+                <h5>Pricing</h5>
+                <div class="row g-3">
+                    <div class="col-md-3"><label class="form-label">Hourly Rate (₹)</label><input type="number" class="form-control" name="rental_price_per_hour" value="80"></div>
+                    <div class="col-md-3"><label class="form-label">Daily Rate (₹) *</label><input type="number" class="form-control" name="rental_price_per_day" value="400" required></div>
+                    <div class="col-md-3"><label class="form-label">Weekly Rate (₹)</label><input type="number" class="form-control" name="rental_price_per_week" value="2200"></div>
+                    <div class="col-md-3"><label class="form-label">Monthly Rate (₹)</label><input type="number" class="form-control" name="rental_price_per_month" value="7500"></div>
+                    <div class="col-md-4"><label class="form-label">Security Deposit (₹) *</label><input type="number" class="form-control" name="security_deposit" value="2000"></div>
+                    <div class="col-md-4"><label class="form-label">Delivery Charge (₹)</label><input type="number" class="form-control" name="delivery_charge" value="100"></div>
+                    <div class="col-md-4"><label class="form-label">Late Return (₹/hr)</label><input type="number" class="form-control" name="late_return_fee" value="100"></div>
+                </div>
+            </div>
+            <div class="detail-card">
+                <h5>Vehicle Images</h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="p-3 rounded text-center position-relative" style="background:var(--bg);border:2px dashed var(--border);cursor:pointer;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="document.getElementById('file_image_front').click()">
+                            <input type="file" id="file_image_front" name="image_front" accept="image/*" style="display:none;" onchange="previewVehBox(this, 'box_front')">
+                            <div id="box_front">
+                                <i class="bi bi-cloud-arrow-up" style="font-size:28px;color:var(--text-muted);"></i>
+                                <p style="font-size:11px;margin:4px 0 0;color:var(--text-muted);">Front View</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded text-center position-relative" style="background:var(--bg);border:2px dashed var(--border);cursor:pointer;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="document.getElementById('file_image_side').click()">
+                            <input type="file" id="file_image_side" name="image_side" accept="image/*" style="display:none;" onchange="previewVehBox(this, 'box_side')">
+                            <div id="box_side">
+                                <i class="bi bi-cloud-arrow-up" style="font-size:28px;color:var(--text-muted);"></i>
+                                <p style="font-size:11px;margin:4px 0 0;color:var(--text-muted);">Side View</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded text-center position-relative" style="background:var(--bg);border:2px dashed var(--border);cursor:pointer;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="document.getElementById('file_image_back').click()">
+                            <input type="file" id="file_image_back" name="image_back" accept="image/*" style="display:none;" onchange="previewVehBox(this, 'box_back')">
+                            <div id="box_back">
+                                <i class="bi bi-cloud-arrow-up" style="font-size:28px;color:var(--text-muted);"></i>
+                                <p style="font-size:11px;margin:4px 0 0;color:var(--text-muted);">Back View</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 rounded text-center position-relative" style="background:var(--bg);border:2px dashed var(--border);cursor:pointer;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="document.getElementById('file_image_dashboard').click()">
+                            <input type="file" id="file_image_dashboard" name="image_dashboard" accept="image/*" style="display:none;" onchange="previewVehBox(this, 'box_dashboard')">
+                            <div id="box_dashboard">
+                                <i class="bi bi-cloud-arrow-up" style="font-size:28px;color:var(--text-muted);"></i>
+                                <p style="font-size:11px;margin:4px 0 0;color:var(--text-muted);">Dashboard</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="detail-card">
+                <h5>Location & Availability</h5>
+                <div class="mb-3">
+                    <label class="form-label">Location *</label>
+                    <select class="form-select" name="location" required>
+                        <option value="">Select Location</option>
+                        {% for loc in locations %}
+                        <option value="{{ loc.id }}">{{ loc.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Franchise</label>
+                    <select class="form-select" name="franchise">
+                        <option value="">Select Franchise</option>
+                        {% for franchise in franchises %}
+                        <option value="{{ franchise.id }}">{{ franchise.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3"><label class="form-label">Availability *</label><select class="form-select" name="availability_status"><option>Available</option><option>Reserved</option><option>Maintenance</option><option>Inactive</option></select></div>
+            </div>
+            <div class="detail-card">
+                <h5>Insurance</h5>
+                <div class="mb-3"><label class="form-label">Policy Number</label><input type="text" class="form-control" name="insurance_policy_number" placeholder="Insurance policy number"></div>
+                <div class="mb-3"><label class="form-label">Provider</label><input type="text" class="form-control" name="insurance_provider" placeholder="Insurance provider"></div>
+                <div class="mb-3"><label class="form-label">Start Date</label><input type="date" class="form-control" name="insurance_start_date"></div>
+                <div class="mb-3"><label class="form-label">Expiry Date</label><input type="date" class="form-control" name="insurance_expiry_date"></div>
+            </div>
+            <div class="detail-card">
+                <h5>Registration</h5>
+                <div class="mb-3"><label class="form-label">Registration Date</label><input type="date" class="form-control" name="registration_date"></div>
+                <div class="mb-3"><label class="form-label">RC Expiry</label><input type="date" class="form-control" name="rc_expiry_date"></div>
+                <div class="mb-3"><label class="form-label">Fitness Valid Until</label><input type="date" class="form-control" name="fitness_valid_until"></div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn-primary-custom"><i class="bi bi-check-lg"></i> Save Vehicle</button>
+        <a href="{% url 'admin_vehicles' %}" class="btn-outline-custom">Cancel</a>
+    </div>
+</form>
+
+<script>
+function previewVehBox(input, targetId) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var container = document.getElementById(targetId);
+            container.innerHTML = '<img src="' + e.target.result + '" style="max-height:80px;max-width:100%;object-fit:contain;border-radius:4px;"><p style="font-size:10px;margin:4px 0 0;color:var(--text-main);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;">' + input.files[0].name + '</p>';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

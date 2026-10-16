@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+{% block title %}Vehicle Categories{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Vehicle Categories</h1><p>Manage vehicle types and categories</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addCategoryModal"><i class="bi bi-plus-lg"></i> Add Category</button></div>
+</div>
+
+<div class="row g-4">
+    {% for category in categories %}
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-body text-center">
+                <div class="p-3 rounded mx-auto mb-3" style="width:80px;height:80px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi {{ category.icon|default:'bi-bicycle' }}" style="font-size:36px;color:var(--accent);"></i>
+                </div>
+                <h5 class="mb-1">{{ category.name }}</h5>
+                <p style="font-size:12px;color:var(--text-secondary);">{{ category.description }}</p>
+                <div class="d-flex justify-content-between mt-3 pt-3" style="border-top:1px solid var(--border-light);">
+                    <div><div style="font-size:11px;color:var(--text-muted);">Vehicles</div><div class="cell-bold">{{ category.vehicle_count|default:"0" }}</div></div>
+                    <div><div style="font-size:11px;color:var(--text-muted);">Starting Price</div><div class="cell-bold">₹{{ category.base_daily_rate }}/day</div></div>
+                    <div><div style="font-size:11px;color:var(--text-muted);">Status</div>
+                        {% if category.is_active %}
+                        <span class="status-badge badge-active">Active</span>
+                        {% else %}
+                        <span class="status-badge badge-inactive">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="panel-card-footer d-flex justify-content-end gap-2">
+                <button class="btn-sm-action" onclick="openEditModal('vehicle-category', '{{ category.id }}', this)"><i class="bi bi-pencil"></i></button>
+                <button class="btn-sm-action danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-url="/api/vehicle-categories/{{ category.id }}/" data-item="{{ category.name }}"><i class="bi bi-trash"></i></button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">
+        <p>No categories found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm" method="POST" action="{% url 'admin_vehicle_categories' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Base Daily Rate (₹)</label>
+                        <input type="number" class="form-control" name="base_daily_rate" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addCategoryForm" class="btn-primary-custom">Add Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,574 @@
+{% extends "admin/base.html" %}
+{% block title %}{% if is_edit %}Edit Location: {{ location.name }}{% else %}Add Service Location{% endif %}{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS (Free OpenStreetMap library) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    #locationMap {
+        height: 380px;
+        width: 100%;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        z-index: 1;
+    }
+    .map-helper-badge {
+        font-size: 12px;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .search-results-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        max-height: 240px;
+        overflow-y: auto;
+        display: none;
+    }
+    .search-result-item {
+        padding: 9px 14px;
+        cursor: pointer;
+        font-size: 13px;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+    }
+    .search-result-item:hover {
+        background: #f8fafc;
+        color: #0284c7;
+    }
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    .coord-chip {
+        font-family: monospace;
+        background: #ecfdf5;
+        color: #047857;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        border: 1px solid #a7f3d0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'admin_locations' %}" class="btn btn-light border btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold">{% if is_edit %}Edit Location: {{ location.name }}{% else %}Add New Service Location{% endif %}</h1>
+            <p class="text-muted small mb-0">Use the interactive map or free search service to pinpoint exact latitude and longitude for where services are available.</p>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{% if is_edit %}{% url 'admin_location_edit' location.location_id %}{% else %}{% url 'admin_location_form' %}{% endif %}" id="locationForm">
+    {% csrf_token %}
+
+    <div class="row g-4">
+        <!-- Left Column: Free Geocoding Map Tool -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-1"><i class="bi bi-google text-danger me-1"></i> Google Maps & Geolocation (Free Source)</h6>
+                        <span class="text-muted small">No API key required. Real Google Maps layers, GPS auto-detect, and paste coordinates support.</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetectLocation" onclick="detectCurrentLocation()">
+                            <i class="bi bi-crosshair"></i> Use My GPS
+                        </button>
+                        <a href="https://www.google.com/maps?q={{ location.latitude|default:'23.344100' }},{{ location.longitude|default:'85.309600' }}" target="_blank" class="btn btn-outline-danger btn-sm" id="btnOpenInGoogleMaps" title="Open this location in Google Maps">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Google Maps
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Geocoding Search Bar with Google Maps Link & Coordinate Detection -->
+                <div class="position-relative mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="geoSearchInput" placeholder="Search address, landmark, or paste Google Maps link / coordinates (e.g. 23.3512, 85.3424)..." autocomplete="off">
+                        <button class="btn btn-primary" type="button" id="btnSearchGeo" onclick="performGeoSearch()">
+                            <span id="searchBtnSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                            Search Location
+                        </button>
+                    </div>
+                    <!-- Autocomplete Suggestions Dropdown -->
+                    <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+                </div>
+
+                <!-- Leaflet Interactive Map -->
+                <div id="locationMap"></div>
+
+                <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2">
+                    <div class="map-helper-badge">
+                        <i class="bi bi-info-circle-fill text-primary"></i> Click anywhere or drag the pin to set the exact service location.
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">Selected Coordinates:</span>
+                        <span id="coordBadge" class="coord-chip">
+                            {% if location.latitude and location.longitude %}
+                                {{ location.latitude }}, {{ location.longitude }}
+                            {% else %}
+                                23.344100, 85.309600
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Location Form Fields -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-building-check text-primary me-1"></i> Location Details</h6>
+
+                <div class="row g-3">
+                    <!-- Location Name -->
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Location / Hub Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="id_name" class="form-control" placeholder="e.g. Ranchi Station Hub" value="{{ location.name|default:'' }}" required>
+                    </div>
+
+                    <!-- Franchise -->
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Franchise Branch (Optional)</label>
+                        <select name="franchise" id="id_franchise" class="form-select">
+                            <option value="">-- Main Hub (Direct Operations) --</option>
+                            {% for f in franchises %}
+                            <option value="{{ f.id }}" {% if location.franchise_id == f.id %}selected{% endif %}>{{ f.name }} ({{ f.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- City & State -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">City <span class="text-danger">*</span></label>
+                        <input type="text" name="city" id="id_city" class="form-control" placeholder="e.g. Ranchi" value="{{ location.city|default:'Ranchi' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">State <span class="text-danger">*</span></label>
+                        <input type="text" name="state" id="id_state" class="form-control" placeholder="e.g. Jharkhand" value="{{ location.state|default:'Jharkhand' }}" required>
+                    </div>
+
+                    <!-- Full Address -->
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Full Address <span class="text-danger">*</span></label>
+                        <textarea name="address" id="id_address" class="form-control" rows="2" placeholder="Street address, building, landmark" required>{{ location.address|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Pincode & Contact Phone -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Pincode</label>
+                        <input type="text" name="pincode" id="id_pincode" class="form-control" placeholder="e.g. 834001" value="{{ location.pincode|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Contact Phone</label>
+                        <input type="text" name="contact_phone" id="id_contact_phone" class="form-control" placeholder="e.g. +91 9876543210" value="{{ location.contact_phone|default:'' }}">
+                    </div>
+
+                    <!-- Latitude & Longitude (Auto-filled by Map or Manual) -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Latitude <span class="text-danger">*</span></label>
+                        <input type="number" step="any" name="latitude" id="id_latitude" class="form-control font-monospace" placeholder="e.g. 23.344100" value="{{ location.latitude|default:'23.344100' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Longitude <span class="text-danger">*</span></label>
+                        <input type="number" step="any" name="longitude" id="id_longitude" class="form-control font-monospace" placeholder="e.g. 85.309600" value="{{ location.longitude|default:'85.309600' }}" required>
+                    </div>
+
+                    <!-- Operating Hours & Total Capacity -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Operating Hours</label>
+                        <input type="text" name="operating_hours" id="id_operating_hours" class="form-control" placeholder="07:00 AM - 10:00 PM" value="{{ location.operating_hours|default:'07:00 AM - 10:00 PM' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Fleet Capacity</label>
+                        <input type="number" name="total_capacity" id="id_total_capacity" class="form-control" placeholder="50" value="{{ location.total_capacity|default:50 }}">
+                    </div>
+
+                    <!-- Service Active Toggle -->
+                    <div class="col-12">
+                        <div class="form-check form-switch p-3 bg-light rounded-3 mt-2 border">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" name="is_active" id="id_is_active" {% if location.is_active or not location %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="id_is_active">
+                                Services Available at this Location
+                                <div class="text-muted small fw-normal">When active, customers in this city can see this hub for pickup, drop-off, and doorstep delivery.</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4 pt-2 border-top">
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+                        <i class="bi bi-check-circle-fill me-1"></i> {% if is_edit %}Update Location{% else %}Save Location{% endif %}
+                    </button>
+                    <a href="{% url 'admin_locations' %}" class="btn btn-outline-secondary px-3 py-2">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS (Free OpenStreetMap library) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initial Coordinates
+    var defaultLat = parseFloat("{{ location.latitude|default:'23.344100' }}") || 23.344100;
+    var defaultLng = parseFloat("{{ location.longitude|default:'85.309600' }}") || 85.309600;
+
+    // Initialize Map
+    var map = L.map('locationMap').setView([defaultLat, defaultLng], 13);
+
+    // High-performance, 100% Free Google Maps Tile Layers (No API Key Required)
+    // 1. Google Maps Roadmap (Standard Streets)
+    var googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+    });
+
+    // 2. Google Maps Satellite Hybrid (Satellite Imagery + Street/Place Labels)
+    var googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+    });
+
+    // 3. Google Maps Terrain
+    var googleTerrain = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+    });
+
+    // 4. CartoDB Voyager (Alternative OpenStreetMap Streets)
+    var voyagerLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    });
+
+    // Default to Google Maps Roadmap
+    googleStreets.addTo(map);
+
+    // Layer switch control (top-right of map)
+    var baseMaps = {
+        "🗺️ Google Roadmap": googleStreets,
+        "🛰️ Google Satellite (Hybrid)": googleHybrid,
+        "🏔️ Google Terrain": googleTerrain,
+        "🧭 OpenStreetMap Streets": voyagerLayer
+    };
+    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+    // Draggable Marker
+    var marker = L.marker([defaultLat, defaultLng], {
+        draggable: true,
+        title: "Drag to pinpoint service location"
+    }).addTo(map);
+
+    marker.bindPopup("<b>Service Location Hub</b><br>Drag me to adjust coordinates!").openPopup();
+
+    function updateCoordinates(lat, lng, shouldReverseGeocode = false) {
+        var formattedLat = parseFloat(lat).toFixed(6);
+        var formattedLng = parseFloat(lng).toFixed(6);
+
+        document.getElementById('id_latitude').value = formattedLat;
+        document.getElementById('id_longitude').value = formattedLng;
+        document.getElementById('coordBadge').innerText = formattedLat + ", " + formattedLng;
+
+        var gMapBtn = document.getElementById('btnOpenInGoogleMaps');
+        if (gMapBtn) {
+            gMapBtn.href = `https://www.google.com/maps?q=${formattedLat},${formattedLng}`;
+        }
+
+        marker.setLatLng([formattedLat, formattedLng]);
+
+        if (shouldReverseGeocode) {
+            reverseGeocode(formattedLat, formattedLng);
+        }
+    }
+
+    // On Marker Drag End
+    marker.on('dragend', function(e) {
+        var pos = marker.getLatLng();
+        updateCoordinates(pos.lat, pos.lng, true);
+    });
+
+    // On Map Click
+    map.on('click', function(e) {
+        updateCoordinates(e.latlng.lat, e.latlng.lng, true);
+    });
+
+    // Listen to manual input changes
+    document.getElementById('id_latitude').addEventListener('change', function() {
+        var lat = parseFloat(this.value);
+        var lng = parseFloat(document.getElementById('id_longitude').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            map.panTo([lat, lng]);
+            marker.setLatLng([lat, lng]);
+            document.getElementById('coordBadge').innerText = lat.toFixed(6) + ", " + lng.toFixed(6);
+            var gMapBtn = document.getElementById('btnOpenInGoogleMaps');
+            if (gMapBtn) gMapBtn.href = `https://www.google.com/maps?q=${lat},${lng}`;
+        }
+    });
+
+    document.getElementById('id_longitude').addEventListener('change', function() {
+        var lat = parseFloat(document.getElementById('id_latitude').value);
+        var lng = parseFloat(this.value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            map.panTo([lat, lng]);
+            marker.setLatLng([lat, lng]);
+            document.getElementById('coordBadge').innerText = lat.toFixed(6) + ", " + lng.toFixed(6);
+            var gMapBtn = document.getElementById('btnOpenInGoogleMaps');
+            if (gMapBtn) gMapBtn.href = `https://www.google.com/maps?q=${lat},${lng}`;
+        }
+    });
+
+    // Reverse Geocoding with Fallback (Nominatim -> Photon)
+    function reverseGeocode(lat, lng) {
+        var url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(res => {
+                if (!res.ok) throw new Error("Nominatim blocked or failed");
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.address) {
+                    applyAddressFields(data.address, data.display_name);
+                }
+            })
+            .catch(function() {
+                // Fallback to Photon reverse geocode
+                fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.features && data.features.length > 0) {
+                            var props = data.features[0].properties;
+                            var city = props.city || props.town || props.state || "";
+                            var state = props.state || "";
+                            var postcode = props.postcode || "";
+                            var name = props.name || props.street || "";
+
+                            if (city && !document.getElementById('id_city').value) document.getElementById('id_city').value = city;
+                            if (state && !document.getElementById('id_state').value) document.getElementById('id_state').value = state;
+                            if (postcode && !document.getElementById('id_pincode').value) document.getElementById('id_pincode').value = postcode;
+                            if (name && !document.getElementById('id_address').value) document.getElementById('id_address').value = `${name}, ${city}, ${state}`;
+                        }
+                    })
+                    .catch(err => console.log("Reverse geocode fallback error:", err));
+            });
+    }
+
+    function applyAddressFields(addr, displayName) {
+        var city = addr.city || addr.town || addr.municipality || addr.state_district || addr.suburb || addr.village || "";
+        var state = addr.state || "";
+        var postcode = addr.postcode || "";
+
+        if (city) document.getElementById('id_city').value = city;
+        if (state) document.getElementById('id_state').value = state;
+        if (postcode) document.getElementById('id_pincode').value = postcode;
+        if (displayName) document.getElementById('id_address').value = displayName;
+    }
+
+    // Geocoding Search: Coordinate parsing / Google Maps links + Photon (OSM-based) with Nominatim fallback
+    window.performGeoSearch = function() {
+        var query = document.getElementById('geoSearchInput').value.trim();
+        if (!query) return;
+
+        var spinner = document.getElementById('searchBtnSpinner');
+        spinner.classList.remove('d-none');
+
+        // Check if user pasted coordinates or a Google Maps link!
+        // 1. Matches direct coordinates e.g. "23.3512, 85.3424" or "23.3512,85.3424"
+        var coordMatch = query.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (!coordMatch) {
+            // 2. Matches Google Maps URLs containing @lat,lng or q=lat,lng
+            coordMatch = query.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || query.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        }
+
+        if (coordMatch) {
+            var lat = parseFloat(coordMatch[1]);
+            var lon = parseFloat(coordMatch[2]);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                map.setView([lat, lon], 16);
+                updateCoordinates(lat, lon, true);
+                spinner.classList.add('d-none');
+                return;
+            }
+        }
+
+        // Primary Search: Photon API (Fast, completely unblocked, no API key needed)
+        var photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6`;
+
+
+        fetch(photonUrl)
+            .then(res => res.json())
+            .then(data => {
+                spinner.classList.add('d-none');
+                if (data && data.features && data.features.length > 0) {
+                    displayPhotonResults(data.features);
+                } else {
+                    // Try Nominatim fallback
+                    fallbackNominatimSearch(query);
+                }
+            })
+            .catch(function() {
+                fallbackNominatimSearch(query);
+            });
+    };
+
+    function displayPhotonResults(features) {
+        var dropdown = document.getElementById('searchResultsDropdown');
+        dropdown.innerHTML = "";
+
+        features.forEach(f => {
+            var props = f.properties || {};
+            var coords = f.geometry.coordinates; // [lon, lat]
+            var title = props.name || props.city || props.state || "Location";
+            var subtitle = [props.street, props.city, props.state, props.country].filter(Boolean).join(", ");
+
+            var div = document.createElement('div');
+            div.className = 'search-result-item';
+            div.innerHTML = `<i class="bi bi-geo-alt-fill text-primary me-1"></i> <strong>${title}</strong> <span class="text-muted small">(${subtitle || 'India'})</span>`;
+            div.onclick = function() {
+                var lat = coords[1];
+                var lon = coords[0];
+                map.setView([lat, lon], 15);
+                updateCoordinates(lat, lon, false);
+
+                if (props.city) document.getElementById('id_city').value = props.city;
+                if (props.state) document.getElementById('id_state').value = props.state;
+                if (props.postcode) document.getElementById('id_pincode').value = props.postcode;
+                document.getElementById('id_address').value = subtitle || title;
+
+                var nameInput = document.getElementById('id_name');
+                if (!nameInput.value) {
+                    nameInput.value = (props.city || title) + " Hub";
+                }
+
+                dropdown.style.display = 'none';
+                document.getElementById('geoSearchInput').value = `${title}, ${subtitle}`;
+            };
+            dropdown.appendChild(div);
+        });
+
+        dropdown.style.display = 'block';
+    }
+
+    function fallbackNominatimSearch(query) {
+        var spinner = document.getElementById('searchBtnSpinner');
+        var url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&countrycodes=in&limit=5`;
+
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.json())
+            .then(results => {
+                spinner.classList.add('d-none');
+                var dropdown = document.getElementById('searchResultsDropdown');
+                dropdown.innerHTML = "";
+
+                if (!results || results.length === 0) {
+                    dropdown.innerHTML = `<div class="p-3 text-muted text-center small">No locations found for "${query}". Try searching city name or landmark.</div>`;
+                    dropdown.style.display = 'block';
+                    return;
+                }
+
+                results.forEach(item => {
+                    var div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.innerHTML = `<i class="bi bi-geo-alt text-primary me-1"></i> <strong>${item.name || item.display_name.split(',')[0]}</strong> <span class="text-muted small">(${item.display_name})</span>`;
+                    div.onclick = function() {
+                        var lat = parseFloat(item.lat);
+                        var lon = parseFloat(item.lon);
+                        map.setView([lat, lon], 15);
+                        updateCoordinates(lat, lon, false);
+
+                        var addr = item.address || {};
+                        var city = addr.city || addr.town || addr.municipality || addr.state_district || addr.suburb || addr.village || "";
+                        var state = addr.state || "";
+                        var postcode = addr.postcode || "";
+
+                        if (city) document.getElementById('id_city').value = city;
+                        if (state) document.getElementById('id_state').value = state;
+                        if (postcode) document.getElementById('id_pincode').value = postcode;
+                        if (item.display_name) document.getElementById('id_address').value = item.display_name;
+
+                        var nameInput = document.getElementById('id_name');
+                        if (!nameInput.value) {
+                            nameInput.value = (item.name || city) + " Hub";
+                        }
+
+                        dropdown.style.display = 'none';
+                        document.getElementById('geoSearchInput').value = item.display_name;
+                    };
+                    dropdown.appendChild(div);
+                });
+
+                dropdown.style.display = 'block';
+            })
+            .catch(err => {
+                spinner.classList.add('d-none');
+                console.error("Search error:", err);
+            });
+    }
+
+    // Search on enter key
+    document.getElementById('geoSearchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performGeoSearch();
+        }
+    });
+
+    // Close dropdown when clicked outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#geoSearchInput') && !e.target.closest('#searchResultsDropdown') && !e.target.closest('#btnSearchGeo')) {
+            document.getElementById('searchResultsDropdown').style.display = 'none';
+        }
+    });
+
+    // Detect GPS location using browser geolocation
+    window.detectCurrentLocation = function() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+        var btn = document.getElementById('btnDetectLocation');
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Locating...`;
+        btn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                btn.innerHTML = `<i class="bi bi-crosshair"></i> Use My GPS`;
+                btn.disabled = false;
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                map.setView([lat, lng], 15);
+                updateCoordinates(lat, lng, true);
+            },
+            function(error) {
+                btn.innerHTML = `<i class="bi bi-crosshair"></i> Use My GPS`;
+                btn.disabled = false;
+                alert("Unable to retrieve your location: " + error.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+});
+</script>
+{% endblock %}

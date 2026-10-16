@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block title %}Referral Program{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Referral Program</h1><p>Manage referral bonuses and tracking</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom"><i class="bi bi-gear"></i> Program Settings</button></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Total Referrals</div><div class="card-value" style="font-size:22px;">856</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Successful</div><div class="card-value" style="font-size:22px;color:var(--success);">612</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Bonus Paid</div><div class="card-value" style="font-size:22px;">₹3,06,000</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Revenue via Referrals</div><div class="card-value" style="font-size:22px;">₹12,48,000</div></div></div>
+</div>
+
+<div class="detail-card mb-4">
+    <h5>Current Referral Rules</h5>
+    <div class="detail-row"><div class="detail-label">Referrer Bonus</div><div class="detail-value">₹500 wallet credit per successful referral</div></div>
+    <div class="detail-row"><div class="detail-label">Referee Bonus</div><div class="detail-value">₹200 wallet credit on first booking</div></div>
+    <div class="detail-row"><div class="detail-label">Condition</div><div class="detail-value">Referee must complete first booking worth ₹300+</div></div>
+    <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-active">Active</span></div></div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-card-header"><h5>Recent Referrals</h5></div>
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Referrer</th><th>Referee</th><th>Referral Code</th><th>Date</th><th>Booking</th><th>Bonus</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-bold">Rahul Kumar</td><td>Amit Verma</td><td style="font-family:monospace;">RAHUL2026</td><td>10 Mar 2026</td><td>#BK10050</td><td>₹500</td><td><span class="status-badge badge-paid">Paid</span></td></tr>
+                <tr><td class="cell-bold">Priya Sharma</td><td>Kavita Devi</td><td style="font-family:monospace;">PRIYA2026</td><td>25 Sep 2026</td><td>#BK10240</td><td>₹500</td><td><span class="status-badge badge-paid">Paid</span></td></tr>
+                <tr><td class="cell-bold">Vikash Gupta</td><td>Ravi Shankar</td><td style="font-family:monospace;">VIKAS2026</td><td>28 Sep 2026</td><td>-</td><td>₹0</td><td><span class="status-badge badge-pending">Pending</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

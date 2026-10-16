@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+{% block title %}Franchises{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Franchises</h1><p>Manage franchise operations across all locations</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
+</div>
+<div class="mb-3 p-3 rounded" style="background:var(--accent-light);border:1px solid rgba(255,107,0,0.2);font-size:13px;">
+    <i class="bi bi-shield-fill-check text-accent me-1"></i> <strong>Super Admin View</strong> - You can see all franchise data. Franchise owners can only see their own data.
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Total Franchises</div><div class="card-value" style="font-size:22px;">{{ franchises|length }}</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Active</div><div class="card-value" style="font-size:22px;color:var(--success);">{{ franchises|length }}</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Commission Rate</div><div class="card-value" style="font-size:22px;">15% Avg</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Locations Covered</div><div class="card-value" style="font-size:22px;">18</div></div></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search franchise by name, owner, city..."></div>
+    <select><option value="">All Statuses</option><option>Active</option><option>Pending</option><option>Inactive</option></select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Franchise Name</th><th>Owner</th><th>Location</th><th>Vehicles</th><th>Commission</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for f in franchises %}
+                <tr>
+                    <td class="cell-bold"><a href="{% url 'admin_franchise_detail' f.franchise_id %}" class="cell-link">{{ f.name }}</a></td>
+                    <td>{{ f.owner_name }}</td>
+                    <td>{{ f.city }}, {{ f.state }}</td>
+                    <td><span class="badge bg-light text-dark">{{ f.vehicle_count|default:f.vehicles.count }}</span></td>
+                    <td>{{ f.commission_rate }}%</td>
+                    <td><span class="status-badge {% if f.status == 'active' %}badge-active{% elif f.status == 'pending' %}badge-pending{% else %}badge-inactive{% endif %}">{{ f.status|capfirst }}</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'admin_franchise_detail' f.franchise_id %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action text-primary" title="Edit" onclick="openEditModal('franchise', '{{ f.franchise_id }}', this)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action text-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-item="Franchise {{ f.name }}" data-api-url="/api/franchises/{{ f.franchise_id }}/" data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No franchises found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

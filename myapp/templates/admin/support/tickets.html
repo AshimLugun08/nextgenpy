@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% block title %}Support Tickets{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Support Tickets</h1><p>Manage customer support requests</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">{{ stats.open|add:stats.in_progress|add:stats.resolved|default:tickets|length }}</span></div>
+    <div class="tab-item">Open <span class="tab-count">{{ stats.open|default:0 }}</span></div>
+    <div class="tab-item">In Progress <span class="tab-count">{{ stats.in_progress|default:0 }}</span></div>
+    <div class="tab-item">Resolved <span class="tab-count">{{ stats.resolved|default:0 }}</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search ticket ID, customer, subject..."></div>
+    <select><option value="">All Categories</option><option>Booking</option><option>Payment</option><option>Vehicle</option><option>Refund</option><option>General</option></select>
+    <select><option value="">All Priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select><option value="">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Ticket ID</th><th>Customer</th><th>Subject</th><th>Category</th><th>Priority</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for t in tickets %}
+                <tr>
+                    <td class="cell-link"><a href="{% url 'admin_ticket_detail' t.ticket_id %}" class="cell-link">#{{ t.ticket_id }}</a></td>
+                    <td class="cell-bold">{{ t.customer_name }}</td>
+                    <td>{{ t.subject }}</td>
+                    <td>{{ t.category }}</td>
+                    <td>
+                        <span class="status-badge {% if t.priority == 'High' or t.priority == 'Urgent' %}badge-danger{% elif t.priority == 'Medium' %}badge-warning{% else %}badge-pending{% endif %}">
+                            {{ t.priority }}
+                        </span>
+                    </td>
+                    <td>{{ t.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <span class="status-badge {% if t.status == 'Resolved' %}badge-completed{% elif t.status == 'In Progress' %}badge-processing{% elif t.status == 'Open' %}badge-pending{% else %}badge-inactive{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'admin_ticket_detail' t.ticket_id %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action text-primary" title="Edit" onclick="openEditModal('support', '{{ t.ticket_id }}', this)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action text-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-item="Ticket #{{ t.ticket_id }}" data-api-url="/api/support/tickets/{{ t.ticket_id }}/" data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-4 text-muted">No tickets found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing {{ tickets|length }} entries</div>
+        <div class="page-links"><div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div><div class="page-link-item active">1</div><div class="page-link-item"><i class="bi bi-chevron-right"></i></div></div>
+    </div>
+</div>
+{% endblock %}

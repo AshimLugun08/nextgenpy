@@ -1,0 +1,239 @@
+{% extends "admin/base.html" %}
+{% block title %}Pickup & Drop Detail #{{ task.task_id|default:booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_pickup_drop' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="mb-0">Task {{ task.task_id|default:booking.booking_id }}</h1>
+                {% if booking %}
+                <span class="badge" style="background:rgba(99,102,241,0.1);color:#4f46e5;font-weight:700;font-size:12px;padding:4px 8px;border-radius:6px;">
+                    Booking #{{ booking.booking_id }}
+                </span>
+                {% endif %}
+                {% if booking.delivery_type == "Doorstep" or task.delivery_type == "Doorstep" %}
+                <span class="badge" style="background:rgba(99,102,241,0.15);color:#4f46e5;font-weight:700;font-size:12px;padding:4px 8px;border-radius:6px;">
+                    <i class="bi bi-truck me-1"></i>Doorstep
+                </span>
+                {% else %}
+                <span class="badge" style="background:rgba(14,165,233,0.15);color:#0284c7;font-weight:700;font-size:12px;padding:4px 8px;border-radius:6px;">
+                    <i class="bi bi-geo-alt me-1"></i>Self Pickup
+                </span>
+                {% endif %}
+            </div>
+            <p class="mb-0 text-muted small mt-1">Manage vehicle pickup, return, and doorstep delivery lifecycle</p>
+        </div>
+    </div>
+    <div class="page-header-actions d-flex align-items-center gap-2 flex-wrap">
+        {% if booking.delivery_type == "Self Pickup" and booking.status != "Pickup" and booking.status != "Completed" %}
+        <button class="btn btn-info btn-sm text-white fw-bold" onclick="quickSetDetailStatus('{{ booking.booking_id }}', 'Pickup', this)">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Set Status: Pickup
+        </button>
+        {% elif booking.delivery_type == "Doorstep" and booking.status != "Drop Off" and booking.status != "Completed" %}
+        <button class="btn btn-primary btn-sm text-white fw-bold" onclick="quickSetDetailStatus('{{ booking.booking_id }}', 'Drop Off', this)">
+            <i class="bi bi-truck me-1"></i> Set Status: Drop Off
+        </button>
+        {% endif %}
+
+        {% if booking.status != "Completed" and booking.status != "Cancelled" %}
+        <button class="btn btn-success btn-sm fw-bold" onclick="quickSetDetailStatus('{{ booking.booking_id }}', 'Completed', this)">
+            <i class="bi bi-check2-circle me-1"></i> Complete Handover / Return
+        </button>
+        {% endif %}
+
+        {% if booking %}
+        <a href="{% url 'admin_booking_detail' booking.booking_id %}" class="btn btn-outline-custom btn-sm">
+            <i class="bi bi-arrow-up-right-square me-1"></i> Full Booking Record
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Pickup Details -->
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5><i class="bi bi-geo-alt me-2 text-success"></i>Pickup Information</h5>
+            <div class="detail-row">
+                <div class="detail-label">Booking ID</div>
+                <div class="detail-value cell-link">
+                    {% if booking %}
+                    <a href="{% url 'admin_booking_detail' booking.booking_id %}">#{{ booking.booking_id }}</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Customer Name</div>
+                <div class="detail-value cell-bold">{{ booking.customer.full_name|default:task.customer_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Customer Phone</div>
+                <div class="detail-value">{{ booking.customer.phone|default:"-" }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Vehicle Info</div>
+                <div class="detail-value cell-bold">
+                    {% if booking.vehicle %}
+                    {{ booking.vehicle.brand }} {{ booking.vehicle.model }} ({{ booking.vehicle.vehicle_number }})
+                    {% else %}
+                    {{ task.vehicle_info }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Pickup Hub / Point</div>
+                <div class="detail-value cell-bold">{{ booking.pickup_location.name|default:task.location_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Pickup Address</div>
+                <div class="detail-value">{{ booking.pickup_location.address|default:task.location_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Pickup Scheduled</div>
+                <div class="detail-value cell-bold">
+                    {% if booking.start_datetime %}
+                    {{ booking.start_datetime|date:"d M Y, h:i A" }}
+                    {% else %}
+                    {{ task.scheduled_time|date:"d M Y, h:i A" }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Delivery Type</div>
+                <div class="detail-value">
+                    <span class="badge" style="background:rgba(14,165,233,0.15);color:#0284c7;font-weight:700;">
+                        {{ booking.delivery_type|default:task.delivery_type }}
+                    </span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Booking Status</div>
+                <div class="detail-value">
+                    <span class="status-badge {% if booking.status == 'Active' or booking.status == 'Pickup' %}badge-active{% elif booking.status == 'Confirmed' or booking.status == 'Drop Off' %}badge-confirmed{% elif booking.status == 'Completed' %}badge-completed{% else %}badge-scheduled{% endif %}">
+                        {{ booking.status|default:task.status }}
+                    </span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Fulfillment Status</div>
+                <div class="detail-value">
+                    <span class="status-badge {% if booking.pickup_drop_status == 'Picked Up' %}badge-active{% elif booking.pickup_drop_status == 'Dropped Off' %}badge-confirmed{% elif booking.pickup_drop_status == 'Returned' %}badge-completed{% else %}badge-scheduled{% endif %}">
+                        {{ booking.pickup_drop_status|default:task.status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drop Details & Checklist -->
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5><i class="bi bi-geo-alt-fill me-2 text-danger"></i>Return / Drop Information</h5>
+            <div class="detail-row">
+                <div class="detail-label">Drop Hub / Point</div>
+                <div class="detail-value cell-bold">{{ booking.drop_location.name|default:task.location_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Drop Address</div>
+                <div class="detail-value">{{ booking.drop_location.address|default:task.location_name }}</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Return Scheduled</div>
+                <div class="detail-value cell-bold">
+                    {% if booking.end_datetime %}
+                    {{ booking.end_datetime|date:"d M Y, h:i A" }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Actual Return Time</div>
+                <div class="detail-value">
+                    {{ booking.actual_return_datetime|date:"d M Y, h:i A"|default:"Pending" }}
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Assigned Agent</div>
+                <div class="detail-value">{{ task.assigned_agent|default:"Unassigned" }}</div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <h5><i class="bi bi-clipboard-check me-2 text-primary"></i>Vehicle Handover Checklist</h5>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="chkFuel" checked>
+                <label class="form-check-label" for="chkFuel" style="font-size:13px;">Fuel / Battery level verified ({{ task.fuel_level|default:100 }}%)</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="chkDamage" checked>
+                <label class="form-check-label" for="chkDamage" style="font-size:13px;">No visible damage / scratches inspected</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="chkDocs" checked>
+                <label class="form-check-label" for="chkDocs" style="font-size:13px;">Registration & insurance copy verified</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="chkHelmet" checked>
+                <label class="form-check-label" for="chkHelmet" style="font-size:13px;">Safety helmet provided to customer</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="chkOtp" checked>
+                <label class="form-check-label" for="chkOtp" style="font-size:13px;">Customer driving licence & OTP verified</label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.quickSetDetailStatus = async function(bookingId, statusVal, btn) {
+    if (!bookingId) return;
+    let originalHtml = '';
+    if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+    }
+
+    try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : '') || '';
+        const res = await fetch(`/api/bookings/${bookingId}/status/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ status: statusVal })
+        });
+        const data = await res.json();
+        if (res.ok && data.success !== false) {
+            if (typeof showToast === 'function') {
+                showToast(data.message || `Status updated to ${statusVal}!`, 'success');
+            }
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            const err = data.error || data.message || 'Status update failed';
+            if (typeof showToast === 'function') showToast(err, 'danger');
+            else alert(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') showToast('Network error: ' + err.message, 'danger');
+        else alert('Network error: ' + err.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+};
+</script>
+{% endblock %}

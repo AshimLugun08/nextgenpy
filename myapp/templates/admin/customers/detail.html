@@ -1,0 +1,221 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ customer.full_name|default:"Customer Detail" }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_customers' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1>{{ customer.full_name }}</h1>
+            <p>Customer ID: #{{ customer.customer_id }} &bull; Registered {{ customer.joined_at|date:"d M Y" }}</p>
+        </div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" onclick="openEditModal('customer', '{{ customer.customer_id }}', this)"><i class="bi bi-pencil"></i> Edit Profile</button>
+        <button class="btn-outline-custom {% if customer.is_active %}danger{% else %}text-success border-success{% endif %}" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="{% if customer.is_active %}block{% else %}unblock{% endif %}" data-item="{{ customer.full_name }}" data-api-url="/api/customers/{{ customer.customer_id }}/status/" data-api-method="POST" data-api-payload='{"is_active": {% if customer.is_active %}false{% else %}true{% endif %}}'>
+            <i class="bi bi-{% if customer.is_active %}slash-circle{% else %}check-circle{% endif %}"></i> {% if customer.is_active %}Block Customer{% else %}Unblock Customer{% endif %}
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-xl-3 col-lg-4">
+        <div class="detail-card profile-card text-center">
+            <img src="https://ui-avatars.com/api/?name={{ customer.full_name|urlencode }}&background=002B5B&color=fff&size=120" class="profile-avatar mb-3" alt="{{ customer.full_name }}">
+            <h4>{{ customer.full_name }}</h4>
+            <p><i class="bi bi-telephone me-1"></i> {{ customer.phone }}</p>
+            <p><i class="bi bi-envelope me-1"></i> {{ customer.email }}</p>
+            <div class="mt-3">
+                <span class="status-badge {% if customer.is_active %}badge-active{% else %}badge-danger{% endif %}">{% if customer.is_active %}Active{% else %}Blocked{% endif %}</span>
+                <span class="status-badge {% if customer.kyc_status == 'verified' %}badge-verified{% elif customer.kyc_status == 'pending' %}badge-pending{% else %}badge-rejected{% endif %} ms-1">KYC {{ customer.kyc_status|capfirst }}</span>
+            </div>
+            <hr>
+            <div class="text-start">
+                <div class="detail-row"><div class="detail-label">Customer ID</div><div class="detail-value">#{{ customer.customer_id }}</div></div>
+                <div class="detail-row"><div class="detail-label">Joined</div><div class="detail-value">{{ customer.joined_at|date:"d M Y" }}</div></div>
+                <div class="detail-row"><div class="detail-label">City</div><div class="detail-value">{{ customer.city|default:"Ranchi" }}</div></div>
+                <div class="detail-row"><div class="detail-label">Total Bookings</div><div class="detail-value">{{ customer.total_bookings }}</div></div>
+                <div class="detail-row"><div class="detail-label">Total Spent</div><div class="detail-value">₹{{ customer.total_spent }}</div></div>
+                <div class="detail-row"><div class="detail-label">Wallet Balance</div><div class="detail-value">₹{{ customer.wallet_balance }}</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Content -->
+    <div class="col-xl-9 col-lg-8">
+        <div class="panel-card">
+            <div class="admin-tabs" style="padding:0 22px;">
+                <div class="tab-item active" data-tab="tab-overview">Overview</div>
+                <div class="tab-item" data-tab="tab-kyc">KYC</div>
+                <div class="tab-item" data-tab="tab-licence">Driving Licence</div>
+                <div class="tab-item" data-tab="tab-addresses">Addresses</div>
+                <div class="tab-item" data-tab="tab-bookings">Bookings</div>
+                <div class="tab-item" data-tab="tab-wallet">Wallet</div>
+            </div>
+            <!-- Tab: Overview -->
+            <div class="tab-pane active" id="tab-overview">
+                <div class="panel-card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="stat-card" style="padding:16px;">
+                                <div class="card-label">Total Bookings</div>
+                                <div class="card-value" style="font-size:22px;">{{ customer.total_bookings }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card" style="padding:16px;">
+                                <div class="card-label">Total Spent</div>
+                                <div class="card-value" style="font-size:22px;">₹{{ customer.total_spent }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card" style="padding:16px;">
+                                <div class="card-label">Wallet Balance</div>
+                                <div class="card-value" style="font-size:22px;">₹{{ customer.wallet_balance }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card" style="padding:16px;">
+                                <div class="card-label">KYC Status</div>
+                                <div class="card-value" style="font-size:18px;">{{ customer.kyc_status|capfirst }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="mb-3">Recent Bookings</h6>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr><th>Booking ID</th><th>Vehicle</th><th>Date</th><th>Amount</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for b in customer.bookings.all %}
+                                <tr>
+                                    <td class="cell-link"><a href="{% url 'admin_booking_detail' b.booking_id %}">#{{ b.booking_id }}</a></td>
+                                    <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                                    <td>{{ b.start_datetime|date:"d M Y" }}</td>
+                                    <td>₹{{ b.total_amount }}</td>
+                                    <td><span class="status-badge badge-confirmed">{{ b.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-3">No bookings yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab: KYC -->
+            <div class="tab-pane" id="tab-kyc" style="display:none;">
+                <div class="panel-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <h5>Aadhaar Details</h5>
+                                <div class="detail-row"><div class="detail-label">Aadhaar (Last 4)</div><div class="detail-value">{{ customer.aadhaar_last_four|default:"4321" }}</div></div>
+                                <div class="detail-row"><div class="detail-label">Name on Aadhaar</div><div class="detail-value">{{ customer.aadhaar_name|default:customer.full_name }}</div></div>
+                                <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge {% if customer.kyc_status == 'verified' %}badge-verified{% else %}badge-pending{% endif %}">{{ customer.kyc_status|capfirst }}</span></div></div>
+                                <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">{{ customer.kyc_submitted_at|date:"d M Y"|default:"Recently" }}</div></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-card">
+                                <h5>Verification Summary</h5>
+                                <div class="detail-row"><div class="detail-label">KYC Verified</div><div class="detail-value">{{ customer.kyc_verified_at|date:"d M Y"|default:"Pending" }}</div></div>
+                                <div class="detail-row"><div class="detail-label">Remarks</div><div class="detail-value">{{ customer.kyc_remarks|default:"Standard verification profile" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab: Driving Licence -->
+            <div class="tab-pane" id="tab-licence" style="display:none;">
+                <div class="panel-card-body">
+                    <div class="detail-card">
+                        <h5>Driving Licence Details</h5>
+                        <div class="detail-row"><div class="detail-label">Licence Number</div><div class="detail-value">{{ customer.licence_number|default:"JH01 2021 009876" }}</div></div>
+                        <div class="detail-row"><div class="detail-label">Name on Licence</div><div class="detail-value">{{ customer.licence_name|default:customer.full_name }}</div></div>
+                        <div class="detail-row"><div class="detail-label">Vehicle Class</div><div class="detail-value">{{ customer.vehicle_class|default:"MCWG, LMV" }}</div></div>
+                        <div class="detail-row"><div class="detail-label">Issuing Authority</div><div class="detail-value">{{ customer.issuing_authority|default:"RTO Ranchi" }}</div></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab: Addresses -->
+            <div class="tab-pane" id="tab-addresses" style="display:none;">
+                <div class="panel-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="detail-card">
+                                <h5><i class="bi bi-geo-alt me-2 text-accent"></i>Registered Address</h5>
+                                <p style="font-size:14px;">{{ customer.address|default:"Station Road, Near Overbridge" }}<br>{{ customer.city|default:"Ranchi" }}, {{ customer.state|default:"Jharkhand" }} - {{ customer.pincode|default:"834001" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab: Bookings -->
+            <div class="tab-pane" id="tab-bookings" style="display:none;">
+                <div class="panel-card-body">
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead><tr><th>Booking ID</th><th>Vehicle</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                            <tbody>
+                                {% for b in customer.bookings.all %}
+                                <tr>
+                                    <td class="cell-link"><a href="{% url 'admin_booking_detail' b.booking_id %}">#{{ b.booking_id }}</a></td>
+                                    <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                                    <td>{{ b.start_datetime|date:"d M Y" }}</td>
+                                    <td>₹{{ b.total_amount }}</td>
+                                    <td><span class="status-badge badge-confirmed">{{ b.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-3">No bookings on record.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab: Wallet -->
+            <div class="tab-pane" id="tab-wallet" style="display:none;">
+                <div class="panel-card-body">
+                    <div class="stat-card d-inline-block mb-3" style="padding:16px 24px;">
+                        <div class="card-label">Wallet Balance</div>
+                        <div class="card-value" style="font-size:28px;color:var(--success);">₹{{ customer.wallet_balance }}</div>
+                    </div>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead><tr><th>ID</th><th>Type</th><th>Amount</th><th>Description</th><th>Date</th></tr></thead>
+                            <tbody>
+                                {% for tx in customer.wallet_transactions.all %}
+                                <tr>
+                                    <td>#{{ tx.id }}</td>
+                                    <td><span class="status-badge badge-active">{{ tx.transaction_type }}</span></td>
+                                    <td>₹{{ tx.amount }}</td>
+                                    <td>{{ tx.description }}</td>
+                                    <td>{{ tx.created_at|date:"d M Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-3">No transactions found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+        document.querySelectorAll('.tab-pane').forEach(function(p){ p.style.display='none'; p.classList.remove('active'); });
+        var target = document.getElementById(this.getAttribute('data-tab'));
+        if(target){ target.style.display='block'; target.classList.add('active'); }
+    });
+});
+</script>
+{% endblock %}

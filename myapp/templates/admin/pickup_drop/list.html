@@ -1,0 +1,398 @@
+{% extends "admin/base.html" %}
+{% block title %}Pickup & Drop Management{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="mb-0">Pickup & Drop Management</h1>
+            <span class="badge" style="background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:700;border:1px solid #c8e6c9;">
+                <i class="bi bi-broadcast me-1 text-success"></i> Connected to /api/bookings/
+            </span>
+        </div>
+        <p class="mb-0 text-muted small mt-1">Manage vehicle pickups, returns, and doorstep fulfillment in sync with vendor app</p>
+    </div>
+    <div class="page-header-actions d-flex align-items-center gap-2">
+        <button class="btn btn-outline-custom btn-sm" id="btnLiveSync" onclick="refreshPickupDropData(true)">
+            <i class="bi bi-arrow-clockwise me-1" id="syncIcon"></i> Live Sync
+        </button>
+        <button class="btn btn-outline-custom btn-sm" data-export="csv">
+            <i class="bi bi-download me-1"></i> Export
+        </button>
+    </div>
+</div>
+
+<!-- Tabs connected to /api/bookings/ stats -->
+<div class="admin-tabs flex-wrap">
+    <a href="?tab=all" class="tab-item {% if not current_tab or current_tab == 'all' %}active{% endif %}">
+        All Orders <span class="tab-count" id="stat-total">{{ stats.total }}</span>
+    </a>
+    <a href="?tab=self_pickup" class="tab-item {% if current_tab == 'self_pickup' %}active{% endif %}">
+        <i class="bi bi-geo-alt me-1 text-info"></i> Self Pickup <span class="tab-count" id="stat-self_pickup">{{ stats.self_pickup }}</span>
+    </a>
+    <a href="?tab=doorstep" class="tab-item {% if current_tab == 'doorstep' or current_tab == 'doorstep_deliveries' %}active{% endif %}">
+        <i class="bi bi-truck me-1 text-primary"></i> Doorstep <span class="tab-count" id="stat-doorstep">{{ stats.doorstep }}</span>
+    </a>
+    <a href="?tab=confirmed" class="tab-item {% if current_tab == 'confirmed' %}active{% endif %}">
+        Confirmed <span class="tab-count" id="stat-confirmed">{{ stats.confirmed }}</span>
+    </a>
+    <a href="?tab=pickup" class="tab-item {% if current_tab == 'pickup' %}active{% endif %}">
+        Pickup (Self) <span class="tab-count" id="stat-pickup">{{ stats.pickup }}</span>
+    </a>
+    <a href="?tab=drop_off" class="tab-item {% if current_tab == 'drop_off' or current_tab == 'dropoff' %}active{% endif %}">
+        Drop Off (Doorstep) <span class="tab-count" id="stat-drop_off">{{ stats.drop_off }}</span>
+    </a>
+    <a href="?tab=active" class="tab-item {% if current_tab == 'active' %}active{% endif %}">
+        Active <span class="tab-count" id="stat-active">{{ stats.active }}</span>
+    </a>
+    <a href="?tab=completed" class="tab-item {% if current_tab == 'completed' or current_tab == 'returned' %}active{% endif %}">
+        Completed <span class="tab-count" id="stat-completed">{{ stats.completed }}</span>
+    </a>
+    <a href="?tab=pending" class="tab-item {% if current_tab == 'pending' %}active{% endif %}">
+        Pending <span class="tab-count" id="stat-pending">{{ stats.pending }}</span>
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<form method="GET" class="filter-bar mb-4">
+    {% if current_tab %}<input type="hidden" name="tab" value="{{ current_tab }}">{% endif %}
+    <div class="filter-search">
+        <i class="bi bi-search"></i>
+        <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search booking ID, customer, vehicle, location...">
+    </div>
+    <select name="delivery_type" onchange="this.form.submit()">
+        <option value="">Delivery Type (All)</option>
+        <option value="Self Pickup" {% if current_delivery_type == "Self Pickup" %}selected{% endif %}>Self Pickup</option>
+        <option value="Doorstep" {% if current_delivery_type == "Doorstep" %}selected{% endif %}>Doorstep</option>
+    </select>
+    <select name="status" onchange="this.form.submit()">
+        <option value="">Booking Status (All)</option>
+        <option value="Confirmed" {% if current_status == "Confirmed" %}selected{% endif %}>Confirmed</option>
+        <option value="Pickup" {% if current_status == "Pickup" %}selected{% endif %}>Pickup</option>
+        <option value="Drop Off" {% if current_status == "Drop Off" %}selected{% endif %}>Drop Off</option>
+        <option value="Active" {% if current_status == "Active" %}selected{% endif %}>Active</option>
+        <option value="Completed" {% if current_status == "Completed" %}selected{% endif %}>Completed</option>
+        <option value="Pending" {% if current_status == "Pending" %}selected{% endif %}>Pending</option>
+        <option value="Cancelled" {% if current_status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+    </select>
+    <select name="pickup_drop_status" onchange="this.form.submit()">
+        <option value="">Fulfillment Status (All)</option>
+        <option value="Scheduled" {% if current_pds == "Scheduled" %}selected{% endif %}>Scheduled</option>
+        <option value="Ready" {% if current_pds == "Ready" %}selected{% endif %}>Ready</option>
+        <option value="Out for Delivery" {% if current_pds == "Out for Delivery" %}selected{% endif %}>Out for Delivery</option>
+        <option value="Picked Up" {% if current_pds == "Picked Up" %}selected{% endif %}>Picked Up</option>
+        <option value="Dropped Off" {% if current_pds == "Dropped Off" %}selected{% endif %}>Dropped Off</option>
+        <option value="Returned" {% if current_pds == "Returned" %}selected{% endif %}>Returned</option>
+    </select>
+    {% if search or current_status or current_delivery_type or current_pds %}
+    <a href="{% url 'admin_pickup_drop' %}" class="btn-outline-custom" style="display:inline-flex;align-items:center;padding:6px 12px;font-size:13px;text-decoration:none;">Clear Filters</a>
+    {% endif %}
+</form>
+
+<!-- Pickup & Drop Orders Table -->
+<div class="panel-card shadow-sm">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" id="pickupDropTable">
+            <thead>
+                <tr>
+                    <th>Task ID</th>
+                    <th>Booking ID</th>
+                    <th>Customer</th>
+                    <th>Vehicle</th>
+                    <th>Pickup Hub</th>
+                    <th>Drop Hub</th>
+                    <th>Pickup Schedule</th>
+                    <th>Return Schedule</th>
+                    <th>Delivery Type</th>
+                    <th>Booking Status</th>
+                    <th>Fulfillment</th>
+                    <th>Vendor Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in tasks %}
+                <tr id="row-{{ b.booking_id }}" data-booking-id="{{ b.booking_id }}">
+                    <td>
+                        <strong class="text-secondary" style="font-size:12px;">{{ b.task_id }}</strong>
+                    </td>
+                    <td>
+                        <a href="{% url 'admin_booking_detail' b.booking_id %}" class="cell-link fw-bold">
+                            #{{ b.booking_id }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="cell-bold">{{ b.customer_name }}</div>
+                        {% if b.customer.phone %}<div class="text-muted" style="font-size:11px;">{{ b.customer.phone }}</div>{% endif %}
+                    </td>
+                    <td>
+                        <div class="cell-bold">{{ b.vehicle_info }}</div>
+                        <div class="text-muted" style="font-size:11px;">{{ b.vehicle.category.name|default:"Two Wheeler" }}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <i class="bi bi-geo-alt text-success" style="font-size:11px;"></i>
+                            <span>{{ b.pickup_point }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <i class="bi bi-geo-alt-fill text-danger" style="font-size:11px;"></i>
+                            <span>{{ b.drop_point }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="cell-bold">{{ b.start_datetime|date:"d M Y" }}</div>
+                        <div class="text-muted" style="font-size:11px;">{{ b.start_datetime|date:"h:i A" }}</div>
+                    </td>
+                    <td>
+                        <div class="cell-bold">{{ b.end_datetime|date:"d M Y"|default:"-" }}</div>
+                        <div class="text-muted" style="font-size:11px;">{{ b.end_datetime|date:"h:i A"|default:"" }}</div>
+                    </td>
+                    <td>
+                        {% if b.delivery_type == "Doorstep" %}
+                        <span class="badge badge-doorstep" style="background:rgba(99,102,241,0.15);color:#4f46e5;font-weight:700;font-size:11px;padding:4px 8px;border-radius:6px;">
+                            <i class="bi bi-truck me-1"></i>Doorstep
+                        </span>
+                        {% else %}
+                        <span class="badge badge-selfpickup" style="background:rgba(14,165,233,0.15);color:#0284c7;font-weight:700;font-size:11px;padding:4px 8px;border-radius:6px;">
+                            <i class="bi bi-geo-alt me-1"></i>Self Pickup
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge booking-status-badge {% if b.status == 'Active' or b.status == 'Pickup' %}badge-active{% elif b.status == 'Confirmed' or b.status == 'Drop Off' %}badge-confirmed{% elif b.status == 'Completed' %}badge-completed{% elif b.status == 'Pending' %}badge-pending{% else %}badge-cancelled{% endif %}">
+                            {{ b.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge fulfillment-status-badge {% if b.pickup_drop_status == 'Picked Up' %}badge-active{% elif b.pickup_drop_status == 'Dropped Off' %}badge-confirmed{% elif b.pickup_drop_status == 'Returned' %}badge-completed{% elif b.pickup_drop_status == 'Out for Delivery' %}badge-info{% else %}badge-scheduled{% endif %}">
+                            {{ b.pickup_drop_status|default:"Scheduled" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 align-items-center flex-wrap action-btn-container">
+                            <!-- 1-Click Fast Action based on Delivery Type -->
+                            {% if b.delivery_type == "Self Pickup" and b.status != "Pickup" and b.status != "Completed" and b.status != "Cancelled" %}
+                            <button class="btn btn-sm btn-info text-white fw-semibold py-1 px-2" style="font-size:11px;" title="Vendor: Change Status to Pickup" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Pickup', this)">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Pickup
+                            </button>
+                            {% elif b.delivery_type == "Doorstep" and b.status != "Drop Off" and b.status != "Completed" and b.status != "Cancelled" %}
+                            <button class="btn btn-sm btn-primary text-white fw-semibold py-1 px-2" style="font-size:11px;" title="Vendor: Change Status to Drop Off" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Drop Off', this)">
+                                <i class="bi bi-truck me-1"></i> Drop Off
+                            </button>
+                            {% endif %}
+
+                            {% if b.status == "Pickup" or b.status == "Drop Off" or b.status == "Active" %}
+                            <button class="btn btn-sm btn-success text-white fw-semibold py-1 px-2" style="font-size:11px;" title="Vendor: Mark Returned/Completed" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Completed', this)">
+                                <i class="bi bi-check2-circle me-1"></i> Return
+                            </button>
+                            {% endif %}
+
+                            <!-- View Details -->
+                            <a href="{% url 'admin_booking_detail' b.booking_id %}" class="btn-sm-action" title="View Booking Details"><i class="bi bi-eye"></i></a>
+
+                            <!-- Status Dropdown Menu -->
+                            <div class="dropdown d-inline-block">
+                                <button class="btn-sm-action dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Change Status">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:11px;">
+                                    <li><h6 class="dropdown-header text-uppercase" style="font-size:10px;">Vendor/Admin Status</h6></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Confirmed', this)"><i class="bi bi-check-lg me-2 text-success"></i>Confirmed</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Pickup', this)"><i class="bi bi-box-arrow-in-right me-2 text-info"></i>Pickup (Self Pickup)</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Drop Off', this)"><i class="bi bi-truck me-2 text-primary"></i>Drop Off (Doorstep)</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Active', this)"><i class="bi bi-play-circle me-2 text-success"></i>Active (In Trip)</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Completed', this)"><i class="bi bi-check2-circle me-2 text-dark"></i>Completed / Returned</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="quickSetRowStatus('{{ b.booking_id }}', 'Cancelled', this)"><i class="bi bi-x-circle me-2"></i>Cancelled</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        No pickup & drop records found matching the criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if paginator.num_pages > 1 %}
+    <div class="admin-pagination">
+        <div class="page-info">Showing {{ tasks.start_index }} to {{ tasks.end_index }} of {{ paginator.count }} orders</div>
+        <div class="page-links">
+            {% if tasks.has_previous %}
+            <a href="?page={{ tasks.previous_page_number }}{% if current_tab %}&tab={{ current_tab }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_delivery_type %}&delivery_type={{ current_delivery_type }}{% endif %}{% if current_pds %}&pickup_drop_status={{ current_pds }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="page-link-item"><i class="bi bi-chevron-left"></i></a>
+            {% else %}
+            <div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div>
+            {% endif %}
+
+            {% for p in paginator.page_range %}
+                {% if p == tasks.number %}
+                <div class="page-link-item active">{{ p }}</div>
+                {% elif p >= tasks.number|add:"-2" and p <= tasks.number|add:"2" %}
+                <a href="?page={{ p }}{% if current_tab %}&tab={{ current_tab }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_delivery_type %}&delivery_type={{ current_delivery_type }}{% endif %}{% if current_pds %}&pickup_drop_status={{ current_pds }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="page-link-item">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if tasks.has_next %}
+            <a href="?page={{ tasks.next_page_number }}{% if current_tab %}&tab={{ current_tab }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_delivery_type %}&delivery_type={{ current_delivery_type }}{% endif %}{% if current_pds %}&pickup_drop_status={{ current_pds }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="page-link-item"><i class="bi bi-chevron-right"></i></a>
+            {% else %}
+            <div class="page-link-item disabled"><i class="bi bi-chevron-right"></i></div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick status updater for individual row
+window.quickSetRowStatus = async function(bookingId, statusVal, btn) {
+    let originalHtml = '';
+    if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    }
+
+    try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : '') || '';
+        const res = await fetch(`/api/bookings/${bookingId}/status/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ status: statusVal })
+        });
+        const data = await res.json();
+        if (res.ok && data.success !== false) {
+            if (typeof showToast === 'function') {
+                showToast(data.message || `Status updated to ${statusVal}!`, 'success');
+            }
+            await window.refreshPickupDropData(false);
+        } else {
+            const err = data.error || data.message || 'Status update failed';
+            if (typeof showToast === 'function') showToast(err, 'danger');
+            else alert(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') showToast('Network error: ' + err.message, 'danger');
+        else alert('Network error: ' + err.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+};
+
+// Live sync connecting to /api/bookings/
+window.refreshPickupDropData = async function(manualClick) {
+    const syncBtn = document.getElementById('btnLiveSync');
+    const syncIcon = document.getElementById('syncIcon');
+    if (syncIcon) syncIcon.classList.add('spin-animation');
+
+    try {
+        const res = await fetch('/api/bookings/');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!json || !json.results) return;
+
+        // 1. Update stats counter tabs
+        if (json.stats) {
+            for (const [key, val] of Object.entries(json.stats)) {
+                const badge = document.getElementById(`stat-${key}`);
+                if (badge) badge.textContent = val;
+            }
+        }
+
+        // 2. Update each row in table
+        json.results.forEach(b => {
+            const row = document.getElementById(`row-${b.booking_id}`);
+            if (row) {
+                const bookingBadge = row.querySelector('.booking-status-badge');
+                const fulfillmentBadge = row.querySelector('.fulfillment-status-badge');
+
+                let changed = false;
+                if (bookingBadge && bookingBadge.textContent.trim() !== b.status) {
+                    bookingBadge.textContent = b.status;
+                    bookingBadge.className = 'status-badge booking-status-badge ' + getBookingStatusClass(b.status);
+                    changed = true;
+                }
+                const pds = b.pickup_drop_status || 'Scheduled';
+                if (fulfillmentBadge && fulfillmentBadge.textContent.trim() !== pds) {
+                    fulfillmentBadge.textContent = pds;
+                    fulfillmentBadge.className = 'status-badge fulfillment-status-badge ' + getFulfillmentStatusClass(pds);
+                    changed = true;
+                }
+
+                // If vendor changed status in vendor app, flash highlight row
+                if (changed) {
+                    row.style.backgroundColor = '#ecfdf5';
+                    row.style.transition = 'background-color 0.8s ease';
+                    setTimeout(() => {
+                        row.style.backgroundColor = '';
+                    }, 2500);
+                }
+            }
+        });
+
+        if (manualClick && typeof showToast === 'function') {
+            showToast('Live sync complete: Connected to /api/bookings/', 'success');
+        }
+    } catch (err) {
+        console.warn('Live sync poll error:', err);
+    } finally {
+        if (syncIcon) {
+            setTimeout(() => syncIcon.classList.remove('spin-animation'), 400);
+        }
+    }
+};
+
+function getBookingStatusClass(status) {
+    if (status === 'Active' || status === 'Pickup') return 'badge-active';
+    if (status === 'Confirmed' || status === 'Drop Off') return 'badge-confirmed';
+    if (status === 'Completed') return 'badge-completed';
+    if (status === 'Pending') return 'badge-pending';
+    return 'badge-cancelled';
+}
+
+function getFulfillmentStatusClass(pds) {
+    if (pds === 'Picked Up') return 'badge-active';
+    if (pds === 'Dropped Off') return 'badge-confirmed';
+    if (pds === 'Returned') return 'badge-completed';
+    if (pds === 'Out for Delivery') return 'badge-info';
+    return 'badge-scheduled';
+}
+
+// Polling: Auto-refresh from /api/bookings/ every 10 seconds to detect vendor app updates in real time
+document.addEventListener('DOMContentLoaded', function() {
+    setInterval(function() {
+        window.refreshPickupDropData(false);
+    }, 10000);
+});
+</script>
+
+<style>
+.spin-animation {
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}

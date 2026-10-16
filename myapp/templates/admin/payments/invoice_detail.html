@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+{% block title %}Invoice{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2 no-print">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_invoices' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div><h1>Invoice #INV-2026-0245</h1></div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom btn-print"><i class="bi bi-printer"></i> Print</button>
+        <button class="btn-primary-custom" data-export="pdf"><i class="bi bi-download"></i> Download PDF</button>
+    </div>
+</div>
+
+<div class="invoice-preview">
+    <div class="invoice-header">
+        <div>
+            <h3 style="color:var(--primary);margin-bottom:4px;font-size:22px;">🏍️ BIKE RENTALS</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">Bike & Scooter Rental Services</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">Main Road, Ranchi, Jharkhand - 834001</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">GSTIN: 20XXXXX1234X1ZX</p>
+        </div>
+        <div class="text-end">
+            <h2 style="color:var(--primary);font-size:28px;margin-bottom:8px;">INVOICE</h2>
+            <p style="font-size:13px;margin:2px 0;"><strong>Invoice No:</strong> #INV-2026-0245</p>
+            <p style="font-size:13px;margin:2px 0;"><strong>Date:</strong> 30 Sep 2026</p>
+            <p style="font-size:13px;margin:2px 0;"><strong>Booking:</strong> #BK10245</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h6 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px;">Bill To</h6>
+            <p style="font-size:14px;font-weight:600;margin-bottom:2px;">Rahul Kumar</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">+91 98765 43210</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">rahul.kumar@email.com</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin:0;">42, Ashok Nagar, Doranda, Ranchi - 834002</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <h6 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px;">Rental Details</h6>
+            <p style="font-size:12px;margin:2px 0;"><strong>Vehicle:</strong> Honda Activa 6G</p>
+            <p style="font-size:12px;margin:2px 0;"><strong>Reg No:</strong> JH01 AB 1234</p>
+            <p style="font-size:12px;margin:2px 0;"><strong>Pickup:</strong> 30 Sep 2026, 10:00 AM</p>
+            <p style="font-size:12px;margin:2px 0;"><strong>Return:</strong> 02 Oct 2026, 10:00 AM</p>
+            <p style="font-size:12px;margin:2px 0;"><strong>Duration:</strong> 2 Days</p>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr><th style="text-align:left;">Description</th><th>Qty</th><th>Rate</th><th style="text-align:right;">Amount</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Daily Rental - Honda Activa 6G</td><td style="text-align:center;">2 days</td><td style="text-align:center;">₹400</td><td style="text-align:right;">₹800</td></tr>
+            <tr><td>Delivery Charge</td><td style="text-align:center;">-</td><td style="text-align:center;">-</td><td style="text-align:right;">₹0</td></tr>
+            <tr><td>Helmet (2 nos.)</td><td style="text-align:center;">2</td><td style="text-align:center;">₹0</td><td style="text-align:right;">₹0 (Complimentary)</td></tr>
+        </tbody>
+    </table>
+
+    <div class="row justify-content-end">
+        <div class="col-md-5">
+            <table class="w-100">
+                <tr class="invoice-total-row"><td>Subtotal</td><td style="text-align:right;">₹800</td></tr>
+                <tr class="invoice-total-row"><td>Discount (FIRST50)</td><td style="text-align:right;color:var(--success);">- ₹50</td></tr>
+                <tr class="invoice-total-row"><td>CGST (9%)</td><td style="text-align:right;">₹67.50</td></tr>
+                <tr class="invoice-total-row"><td>SGST (9%)</td><td style="text-align:right;">₹67.50</td></tr>
+                <tr class="invoice-total-row"><td>Security Deposit (Refundable)</td><td style="text-align:right;">₹2,000</td></tr>
+                <tr class="invoice-total-row grand-total"><td>Total Amount</td><td style="text-align:right;">₹2,885</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4 pt-3" style="border-top:1px solid var(--border);">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 style="font-size:12px;color:var(--text-secondary);">Payment Information</h6>
+                <p style="font-size:12px;margin:2px 0;">Method: UPI (PhonePe)</p>
+                <p style="font-size:12px;margin:2px 0;">Transaction ID: #TXN50012</p>
+                <p style="font-size:12px;margin:2px 0;">Status: <span class="status-badge badge-paid">Paid</span></p>
+            </div>
+            <div class="col-md-6 text-end">
+                <h6 style="font-size:12px;color:var(--text-secondary);">Terms & Conditions</h6>
+                <p style="font-size:11px;color:var(--text-muted);">Security deposit will be refunded within 3-5 business days after vehicle return. Late return charges apply as per plan. Damage charges will be deducted from security deposit.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4 pt-3" style="border-top:1px solid var(--border);">
+        <p style="font-size:12px;color:var(--text-muted);margin:0;">This is a computer-generated invoice and does not require a physical signature.</p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0;">Thank you for choosing Bike Rentals!</p>
+    </div>
+</div>
+{% endblock %}

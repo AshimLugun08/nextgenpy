@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% block title %}Create Coupon{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-2">
+    <a href="{% url 'admin_offers' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+    <div><h1>Create Coupon</h1><p>Create a new discount coupon</p></div>
+</div>
+<div class="row"><div class="col-lg-8">
+<form class="admin-form" method="POST" action="{% url 'admin_offer_form' %}">
+    {% csrf_token %}
+    <div class="detail-card">
+        <h5>Coupon Details</h5>
+        <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Coupon Code *</label><input type="text" class="form-control" name="code" placeholder="e.g. WEEKEND20" style="text-transform:uppercase;font-family:monospace;" required></div>
+            <div class="col-md-6"><label class="form-label">Discount Type *</label><select class="form-select" name="discount_type"><option value="percentage">Percentage</option><option value="flat">Flat Amount</option></select></div>
+            <div class="col-md-4"><label class="form-label">Discount Value *</label><input type="number" class="form-control" name="discount_value" placeholder="e.g. 20" required></div>
+            <div class="col-md-4"><label class="form-label">Min. Booking (₹)</label><input type="number" class="form-control" placeholder="300"></div>
+            <div class="col-md-4"><label class="form-label">Max Discount (₹)</label><input type="number" class="form-control" placeholder="200"></div>
+            <div class="col-md-6"><label class="form-label">Valid From *</label><input type="date" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">Valid Until *</label><input type="date" class="form-control"></div>
+            <div class="col-md-6"><label class="form-label">Usage Limit</label><input type="number" class="form-control" placeholder="e.g. 1000 (leave empty for unlimited)"></div>
+            <div class="col-md-6"><label class="form-label">Status</label><select class="form-select"><option>Active</option><option>Inactive</option></select></div>
+            <div class="col-12"><label class="form-label">Title / Description</label><textarea class="form-control" name="title" rows="3" placeholder="Coupon description / title..."></textarea></div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn-primary-custom"><i class="bi bi-check-lg"></i> Create Coupon</button>
+        <a href="{% url 'admin_offers' %}" class="btn-outline-custom">Cancel</a>
+    </div>
+</form>
+</div></div>
+{% endblock %}

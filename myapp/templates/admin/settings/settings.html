@@ -1,0 +1,419 @@
+{% extends "admin/base.html" %}
+{% block title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1>System Settings & Configuration</h1>
+        <p>Manage platform defaults, rental rules, tax rates, payment gateways, and security policies</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn-action btn-outline-action" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+        <button class="btn-action btn-primary-action" onclick="saveSettings()"><i class="bi bi-check2-circle"></i> Save All Changes</button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sidebar Navigation for Settings -->
+    <div class="col-lg-3">
+        <div class="card p-2 sticky-top" style="top: 80px;">
+            <div class="list-group list-group-flush" id="settings-tabs" role="tablist">
+                <a class="list-group-item list-group-item-action active d-flex align-items-center gap-2 py-3" id="tab-general-link" data-bs-toggle="list" href="#tab-general" role="tab">
+                    <i class="bi bi-buildings text-primary fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">General & Business</div>
+                        <small class="text-muted">Company info & contact</small>
+                    </div>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3" id="tab-rental-link" data-bs-toggle="list" href="#tab-rental" role="tab">
+                    <i class="bi bi-bicycle text-success fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">Rental & Policies</div>
+                        <small class="text-muted">Deposit, grace period, limits</small>
+                    </div>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3" id="tab-tax-link" data-bs-toggle="list" href="#tab-tax" role="tab">
+                    <i class="bi bi-percent text-warning fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">Taxes & Charges</div>
+                        <small class="text-muted">GST, helmet fees, platform fee</small>
+                    </div>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3" id="tab-kyc-link" data-bs-toggle="list" href="#tab-kyc" role="tab">
+                    <i class="bi bi-shield-check text-info fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">KYC & Verification</div>
+                        <small class="text-muted">DL, Aadhaar & Face match</small>
+                    </div>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3" id="tab-integrations-link" data-bs-toggle="list" href="#tab-integrations" role="tab">
+                    <i class="bi bi-plug text-danger fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">Gateways & Integrations</div>
+                        <small class="text-muted">Razorpay, SMS, WhatsApp</small>
+                    </div>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-3" id="tab-telematics-link" data-bs-toggle="list" href="#tab-telematics" role="tab">
+                    <i class="bi bi-geo-alt text-dark fs-5"></i>
+                    <div>
+                        <div class="fw-semibold">IoT & Telematics</div>
+                        <small class="text-muted">GPS tracking, Geofencing, speed</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="col-lg-9">
+        <div class="tab-content" id="settings-tabContent">
+
+            <!-- 1. GENERAL SETTINGS -->
+            <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-buildings text-primary me-2"></i>Business Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Platform Brand Name</label>
+                            <input type="text" class="form-control" value="NextGen Bikes & Rentals Pvt. Ltd.">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">GSTIN Registration Number</label>
+                            <input type="text" class="form-control" value="29AAAAA0000A1Z5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Primary Support Email</label>
+                            <input type="email" class="form-control" value="support@nextgenbikes.in">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Toll-Free Customer Care Number</label>
+                            <input type="text" class="form-control" value="+91 1800 200 4848">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Headquarters Corporate Address</label>
+                            <textarea class="form-control" rows="2">#402, 4th Floor, Tech Hub Tower, 100 Feet Rd, Indiranagar, Bangalore, Karnataka - 560038</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-globe text-primary me-2"></i>Regional & Localization Defaults</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Currency Symbol & Code</label>
+                            <select class="form-select">
+                                <option value="INR" selected>₹ Indian Rupee (INR)</option>
+                                <option value="USD">$ US Dollar (USD)</option>
+                                <option value="EUR">€ Euro (EUR)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Timezone</label>
+                            <select class="form-select">
+                                <option value="Asia/Kolkata" selected>Asia/Kolkata (IST +5:30)</option>
+                                <option value="UTC">UTC (GMT)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Date & Time Format</label>
+                            <select class="form-select">
+                                <option value="DD/MM/YYYY" selected>DD/MM/YYYY (e.g. 30/09/2026)</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD (ISO)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. RENTAL RULES -->
+            <div class="tab-pane fade" id="tab-rental" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock text-success me-2"></i>Security Deposits & Grace Periods</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Default Security Deposit (Bikes & Cruisers)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="2500">
+                            </div>
+                            <small class="text-muted">Held as pre-auth or wallet hold during rental</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Default Security Deposit (Scooters & Mopeds)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="1500">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Return Grace Period (Minutes)</label>
+                            <input type="number" class="form-control" value="30">
+                            <small class="text-muted">No overdue fee charged if returned within this buffer</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Overdue Late Penalty (Per Hour)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="150">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock text-success me-2"></i>Duration Limits & Fuel Policy</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Minimum Rental Duration (Hours)</label>
+                            <input type="number" class="form-control" value="2">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Maximum Rental Duration (Days)</label>
+                            <input type="number" class="form-control" value="45">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Fuel Policy</label>
+                            <select class="form-select">
+                                <option value="LEVEL_TO_LEVEL" selected>Same-level Return (Return with same fuel as pickup)</option>
+                                <option value="FULL_TO_FULL">Full-to-Full</option>
+                                <option value="PAY_AS_YOU_GO">Pay-as-you-go per km</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Minimum Driver Age</label>
+                            <input type="number" class="form-control" value="18">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TAXES & CHARGES -->
+            <div class="tab-pane fade" id="tab-tax" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-percent text-warning me-2"></i>GST & Tax Rates</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Electric Vehicles (EV) GST Rate</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Concessional GST for zero emission electric mobility</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Petrol / ICE Two-Wheelers GST Rate</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="18">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Standard rate under SAC Code 9973</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">SAC Code for Two Wheeler Rental</label>
+                            <input type="text" class="form-control" value="997311">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Platform / Convenience Fee per Booking</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="49">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-basket text-warning me-2"></i>Add-on & Accessory Rates</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Primary Helmet (Driver)</label>
+                            <input type="text" class="form-control" value="FREE (Included in all rentals)" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Pillion Helmet (Per Day)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="50">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Mobile Mount / Phone Holder</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" value="30">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. KYC & VERIFICATION -->
+            <div class="tab-pane fade" id="tab-kyc" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-check text-info me-2"></i>Mandatory Verification Rules</h5>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div>
+                                <div class="fw-semibold text-dark">Valid Driving License (DL) Requirement</div>
+                                <small class="text-muted">Must be mandatory for all booking confirmations</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked id="reqDL">
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div>
+                                <div class="fw-semibold text-dark">Secondary Identity Proof (Aadhaar / Voter ID / Passport)</div>
+                                <small class="text-muted">Used for address validation and background verification</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked id="reqAadhaar">
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div>
+                                <div class="fw-semibold text-dark">Live Selfie Face-Match with Document Photo</div>
+                                <small class="text-muted">Biometric comparison score must exceed 85% confidence</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked id="reqSelfie">
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                            <div>
+                                <div class="fw-semibold text-dark">Automated Parivahan / Sarathi OCR Verification</div>
+                                <small class="text-muted">Verify DL validity and vehicle category (MCWG/MCWOG) via government portal</small>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked id="reqSarathi">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. GATEWAYS & INTEGRATIONS -->
+            <div class="tab-pane fade" id="tab-integrations" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-credit-card text-danger me-2"></i>Payment Gateway Configuration</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Active Payment Gateway</label>
+                            <select class="form-select">
+                                <option value="RAZORPAY" selected>Razorpay Payments</option>
+                                <option value="CASHFREE">Cashfree Payments</option>
+                                <option value="STRIPE">Stripe</option>
+                                <option value="PAYTM">Paytm PG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Environment Mode</label>
+                            <select class="form-select">
+                                <option value="TEST">Sandbox / Test Mode</option>
+                                <option value="LIVE" selected>Live Production Mode</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Key ID / Public Key</label>
+                            <input type="text" class="form-control font-monospace" value="rzp_live_k8203d98u19283">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Key Secret</label>
+                            <input type="password" class="form-control font-monospace" value="••••••••••••••••••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-dots text-danger me-2"></i>SMS & WhatsApp Communications</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">WhatsApp Business API Provider</label>
+                            <select class="form-select">
+                                <option value="GUPSHUP" selected>Gupshup Enterprise</option>
+                                <option value="AISENSY">AiSensy</option>
+                                <option value="TWILIO">Twilio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">SMS DLT Entity ID</label>
+                            <input type="text" class="form-control font-monospace" value="140155239000004819">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked id="sendWA">
+                                <label class="form-check-label small" for="sendWA">Send digital invoice & vehicle handover checklist via WhatsApp automatically</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. IOT & TELEMATICS -->
+            <div class="tab-pane fade" id="tab-telematics" role="tabpanel">
+                <div class="card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt text-dark me-2"></i>GPS & Speed Monitoring</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">High Speed Warning Alert (km/h)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="80">
+                                <span class="input-group-text">km/h</span>
+                            </div>
+                            <small class="text-muted">Sends immediate push notification & SMS warning to rider</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Remote Engine Immobilization</label>
+                            <select class="form-select">
+                                <option value="ENABLED_THEFT_ONLY" selected>Enabled for theft / emergency override only</option>
+                                <option value="MANUAL_ONLY">Manual approval by Fleet Manager</option>
+                                <option value="DISABLED">Disabled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Battery Disconnect Sensor Threshold</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="15">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Geofence Violation Tolerance Buffer</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="500">
+                                <span class="input-group-text">meters</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    // Show visual confirmation toast
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed bottom-0 end-0 m-3 shadow-lg';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Settings Saved!</strong> System configuration has been updated successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 4000);
+}
+
+function resetForm() {
+    if (confirm("Are you sure you want to revert all unsaved changes to defaults?")) {
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

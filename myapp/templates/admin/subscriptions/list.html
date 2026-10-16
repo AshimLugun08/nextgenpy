@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block title %}Subscriptions{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Subscriptions</h1><p>Manage long-term vehicle subscription plans</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">342</span></div>
+    <div class="tab-item">Active <span class="tab-count">280</span></div>
+    <div class="tab-item">Expiring Soon <span class="tab-count">18</span></div>
+    <div class="tab-item">Expired <span class="tab-count">32</span></div>
+    <div class="tab-item">Cancelled <span class="tab-count">12</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search subscriptions..."></div>
+    <select><option value="">Plan</option><option>Weekly</option><option>Monthly</option></select>
+    <select><option value="">Payment</option><option>Paid</option><option>Pending</option><option>Overdue</option></select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Sub ID</th><th>Customer</th><th>Vehicle</th><th>Plan</th><th>Start Date</th><th>End Date</th><th>Amount</th><th>Payment</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-link">#SUB2001</td><td class="cell-bold">Rahul Kumar</td><td>Honda Activa 6G</td><td>Monthly</td><td>01 Sep 2026</td><td>30 Sep 2026</td><td>₹7,500</td><td><span class="status-badge badge-paid">Paid</span></td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><a href="{% url 'admin_subscription_detail' 2001 %}" class="btn-sm-action"><i class="bi bi-eye"></i></a><button class="btn-sm-action"><i class="bi bi-pencil"></i></button></div></td></tr>
+                <tr><td class="cell-link">#SUB2002</td><td class="cell-bold">Priya Sharma</td><td>TVS Jupiter</td><td>Monthly</td><td>15 Sep 2026</td><td>14 Oct 2026</td><td>₹6,500</td><td><span class="status-badge badge-paid">Paid</span></td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><a href="{% url 'admin_subscription_detail' 2002 %}" class="btn-sm-action"><i class="bi bi-eye"></i></a><button class="btn-sm-action"><i class="bi bi-pencil"></i></button></div></td></tr>
+                <tr><td class="cell-link">#SUB2003</td><td class="cell-bold">Vikash Gupta</td><td>Royal Enfield Classic 350</td><td>Monthly</td><td>01 Sep 2026</td><td>30 Sep 2026</td><td>₹12,000</td><td><span class="status-badge badge-paid">Paid</span></td><td><span class="status-badge badge-expiring">Expiring</span></td><td><div class="d-flex gap-1"><a href="{% url 'admin_subscription_detail' 2003 %}" class="btn-sm-action"><i class="bi bi-eye"></i></a><button class="btn-sm-action"><i class="bi bi-arrow-repeat"></i></button></div></td></tr>
+                <tr><td class="cell-link">#SUB1998</td><td class="cell-bold">Deepak Yadav</td><td>Ola S1</td><td>Weekly</td><td>23 Sep 2026</td><td>29 Sep 2026</td><td>₹2,800</td><td><span class="status-badge badge-paid">Paid</span></td><td><span class="status-badge badge-expired">Expired</span></td><td><div class="d-flex gap-1"><a href="{% url 'admin_subscription_detail' 1998 %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></div></td></tr>
+                <tr><td class="cell-link">#SUB1995</td><td class="cell-bold">Sneha Patel</td><td>Ather 450X</td><td>Monthly</td><td>01 Aug 2026</td><td>31 Aug 2026</td><td>₹9,000</td><td><span class="status-badge badge-danger">Refunded</span></td><td><span class="status-badge badge-cancelled">Cancelled</span></td><td><div class="d-flex gap-1"><a href="{% url 'admin_subscription_detail' 1995 %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing 1 to 5 of 342 entries</div>
+        <div class="page-links"><div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div><div class="page-link-item active">1</div><div class="page-link-item">2</div><div class="page-link-item">3</div><div class="page-link-item"><i class="bi bi-chevron-right"></i></div></div>
+    </div>
+</div>
+{% endblock %}

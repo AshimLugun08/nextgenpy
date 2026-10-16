@@ -1,0 +1,75 @@
+{% extends "admin/base.html" %}
+{% block title %}Insurance{% endblock %}
+
+
+{% block content %}
+<div class="modal fade" id="addPolicyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Policy</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="addPolicyForm" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3"><label>Vehicle ID</label><input type="number" name="vehicle_id" class="form-control" required></div>
+                    <div class="mb-3"><label>Provider</label><input type="text" name="provider" class="form-control" required></div>
+                    <div class="mb-3"><label>Policy Number</label><input type="text" name="policy_number" class="form-control" required></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button type="submit" form="addPolicyForm" class="btn-primary-custom">Save</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Insurance</h1><p>Manage vehicle insurance policies</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addPolicyModal"><i class="bi bi-plus-lg"></i> Add Policy</button></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Vehicle</th><th>Policy Number</th><th>Provider</th><th>Type</th><th>Start Date</th><th>Expiry Date</th><th>Premium</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for p in policies %}
+                <tr>
+                    <td class="cell-bold">{{ p.vehicle.vehicle_number|default:"-" }}</td>
+                    <td>{{ p.policy_number }}</td>
+                    <td>{{ p.provider }}</td>
+                    <td>{{ p.coverage_type|default:"Comprehensive" }}</td>
+                    <td>{{ p.start_date|date:"d M Y" }}</td>
+                    <td>{{ p.expiry_date|date:"d M Y" }}</td>
+                    <td>₹{{ p.premium_amount }}</td>
+                    <td><span class="status-badge badge-active">{{ p.status|default:"Active" }}</span></td>
+                    <td><div class="d-flex gap-1"><button class="btn-sm-action" onclick="openEditModal('insurance', '{{ p.id }}')"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-url="/api/insurance/{{ p.id }}/"><i class="bi bi-trash"></i></button></div></td>
+                </tr>
+                {% endfor %}
+</tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addPolicyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Policy</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="addPolicyForm" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Vehicle ID / No.</label>
+                        <input list="vehiclesList" name="vehicle_id" class="form-control" placeholder="Type or select vehicle..." required>
+                        <datalist id="vehiclesList">
+                            {% for v in vehicles %}
+                                <option value="{{ v.id }} - {{ v.vehicle_number }} - {{ v.brand }} {{ v.model }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="mb-3"><label>Provider</label><input type="text" name="provider" class="form-control" required></div>
+                    <div class="mb-3"><label>Policy Number</label><input type="text" name="policy_number" class="form-control" required></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button type="submit" form="addPolicyForm" class="btn-primary-custom">Save</button></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

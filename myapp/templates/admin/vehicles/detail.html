@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ vehicle.brand }} {{ vehicle.model }} - {{ vehicle.vehicle_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_vehicles' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1>{{ vehicle.brand }} {{ vehicle.model }} - {{ vehicle.vehicle_number }}</h1>
+            <p>Category: {{ vehicle.category.name|default:"Two Wheeler" }} &bull; Added {{ vehicle.created_at|date:"d M Y" }}</p>
+        </div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" onclick="openEditModal('vehicle', '{{ vehicle.vehicle_id }}', this)"><i class="bi bi-pencil"></i> Edit Vehicle</button>
+        <button class="btn-outline-custom" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="maintenance" data-item="{{ vehicle.vehicle_number }}" data-api-url="/api/vehicles/{{ vehicle.vehicle_id }}/" data-api-method="PATCH" data-api-payload='{"availability_status":"Maintenance"}'><i class="bi bi-wrench"></i> Mark Maintenance</button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="detail-card text-center">
+            <div class="p-4 rounded mb-3" style="background:var(--bg);">
+                <i class="bi {% if vehicle.fuel_type == 'Electric' %}bi-lightning-charge-fill text-success{% else %}bi-scooter text-accent{% endif %}" style="font-size:72px;"></i>
+            </div>
+            <h4>{{ vehicle.brand }} {{ vehicle.model }}</h4>
+            <p class="mb-2" style="color:var(--text-secondary);">{{ vehicle.vehicle_number }}</p>
+            <span class="status-badge {% if vehicle.availability_status == 'Available' %}badge-available{% elif vehicle.availability_status == 'Rented' %}badge-rented{% elif vehicle.availability_status == 'Maintenance' %}badge-maintenance{% else %}badge-inactive{% endif %}">
+                {{ vehicle.availability_status }}
+            </span>
+            <hr>
+            <div class="text-start">
+                <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">{{ vehicle.category.name|default:"Standard" }}</div></div>
+                <div class="detail-row"><div class="detail-label">Fuel Type</div><div class="detail-value">{{ vehicle.fuel_type }}</div></div>
+                <div class="detail-row"><div class="detail-label">Color</div><div class="detail-value">{{ vehicle.color|default:"Classic Black" }}</div></div>
+                <div class="detail-row"><div class="detail-label">Registration Year</div><div class="detail-value">{{ vehicle.registration_year|default:"2024" }}</div></div>
+                <div class="detail-row"><div class="detail-label">Odometer</div><div class="detail-value">{{ vehicle.odometer_reading }} km</div></div>
+                <div class="detail-row"><div class="detail-label">Fuel / Battery</div><div class="detail-value">{{ vehicle.fuel_or_battery_level }}%</div></div>
+                <div class="detail-row"><div class="detail-label">Location</div><div class="detail-value">{{ vehicle.current_location.name|default:"Ranchi Station Hub" }}</div></div>
+                <div class="detail-row"><div class="detail-label">Franchise</div><div class="detail-value">{{ vehicle.franchise.name|default:"Ranchi Main" }}</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="admin-tabs" style="padding:0;">
+            <div class="tab-item active" data-tab="vt-overview">Overview</div>
+            <div class="tab-item" data-tab="vt-pricing">Pricing</div>
+            <div class="tab-item" data-tab="vt-maintenance">Maintenance</div>
+            <div class="tab-item" data-tab="vt-bookings">Bookings</div>
+        </div>
+
+        <div class="tab-pane active" id="vt-overview">
+            <div class="row g-3 mt-1">
+                <div class="col-md-4"><div class="stat-card" style="padding:16px;"><div class="card-label">Daily Rental</div><div class="card-value" style="font-size:20px;">₹{{ vehicle.rental_price_per_day }}</div></div></div>
+                <div class="col-md-4"><div class="stat-card" style="padding:16px;"><div class="card-label">Security Deposit</div><div class="card-value" style="font-size:20px;">₹{{ vehicle.security_deposit }}</div></div></div>
+                <div class="col-md-4"><div class="stat-card" style="padding:16px;"><div class="card-label">Total Bookings</div><div class="card-value" style="font-size:20px;">{{ vehicle.bookings.count }}</div></div></div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="vt-pricing" style="display:none;">
+            <div class="detail-card mt-3">
+                <h5>Pricing Details</h5>
+                <div class="detail-row"><div class="detail-label">Hourly Rate</div><div class="detail-value">₹{{ vehicle.rental_price_per_hour }}/hr</div></div>
+                <div class="detail-row"><div class="detail-label">Daily Rate</div><div class="detail-value">₹{{ vehicle.rental_price_per_day }}/day</div></div>
+                <div class="detail-row"><div class="detail-label">Weekly Rate</div><div class="detail-value">₹{{ vehicle.rental_price_per_week }}/week</div></div>
+                <div class="detail-row"><div class="detail-label">Monthly Rate</div><div class="detail-value">₹{{ vehicle.rental_price_per_month }}/month</div></div>
+                <div class="detail-row"><div class="detail-label">Security Deposit</div><div class="detail-value">₹{{ vehicle.security_deposit }}</div></div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="vt-maintenance" style="display:none;">
+            <div class="detail-card mt-3">
+                <h5>Maintenance History</h5>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>Date</th><th>Type</th><th>Center</th><th>Cost</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for m in maintenance_records %}
+                            <tr><td>{{ m.scheduled_date|date:"d M Y" }}</td><td>{{ m.maintenance_type }}</td><td>{{ m.service_center }}</td><td>₹{{ m.cost }}</td><td><span class="status-badge badge-completed">{{ m.status }}</span></td></tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No maintenance records.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="vt-bookings" style="display:none;">
+            <div class="detail-card mt-3">
+                <h5>Recent Bookings</h5>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>Booking ID</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for b in bookings %}
+                            <tr><td class="cell-link"><a href="{% url 'admin_booking_detail' b.booking_id %}">#{{ b.booking_id }}</a></td><td>{{ b.customer.full_name }}</td><td>{{ b.start_datetime|date:"d M Y" }}</td><td>₹{{ b.total_amount }}</td><td><span class="status-badge badge-confirmed">{{ b.status }}</span></td></tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No bookings on record.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+        document.querySelectorAll('.tab-pane').forEach(function(p){ p.style.display='none'; p.classList.remove('active'); });
+        var target = document.getElementById(this.getAttribute('data-tab'));
+        if(target){ target.style.display='block'; target.classList.add('active'); }
+    });
+});
+</script>
+{% endblock %}

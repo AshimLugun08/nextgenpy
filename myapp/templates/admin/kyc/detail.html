@@ -1,0 +1,90 @@
+{% extends "admin/base.html" %}
+{% block title %}KYC Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_kyc' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1>KYC Verification - #KYC5001</h1>
+            <p>Review and verify customer documents</p>
+        </div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="approve" data-item="Amit Verma"><i class="bi bi-check-lg me-1"></i> Approve</button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="reject" data-item="Amit Verma"><i class="bi bi-x-lg me-1"></i> Reject</button>
+        <button class="btn-outline-custom" data-action-btn="request-reupload"><i class="bi bi-arrow-clockwise"></i> Request Re-upload</button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="detail-card">
+            <h5>Customer Information</h5>
+            <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">Amit Verma</div></div>
+            <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">+91 76543 21098</div></div>
+            <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">amit.verma@email.com</div></div>
+            <div class="detail-row"><div class="detail-label">Registered</div><div class="detail-value">10 Mar 2026</div></div>
+            <div class="detail-row"><div class="detail-label">KYC Status</div><div class="detail-value"><span class="status-badge badge-pending">Pending</span></div></div>
+        </div>
+        <div class="detail-card">
+            <h5>Driving Licence Information</h5>
+            <div class="detail-row"><div class="detail-label">Licence No.</div><div class="detail-value">JH05 2019 0098765</div></div>
+            <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">Amit Verma</div></div>
+            <div class="detail-row"><div class="detail-label">DOB</div><div class="detail-value">22 Jun 1998</div></div>
+            <div class="detail-row"><div class="detail-label">Issue Date</div><div class="detail-value">15 Jul 2019</div></div>
+            <div class="detail-row"><div class="detail-label">Expiry</div><div class="detail-value">14 Jul 2039</div></div>
+            <div class="detail-row"><div class="detail-label">Vehicle Class</div><div class="detail-value">MCWG</div></div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="detail-card">
+            <h5>KYC Documents</h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-4 rounded text-center" style="background:var(--bg);border:2px dashed var(--border);">
+                        <i class="bi bi-file-earmark-image" style="font-size:64px;color:var(--text-muted);"></i>
+                        <h6 class="mt-2">Aadhaar Card - Front</h6>
+                        <p style="font-size:12px;color:var(--text-muted);">Uploaded: 29 Sep 2026</p>
+                        <button class="btn btn-sm btn-light"><i class="bi bi-zoom-in me-1"></i>View Full Size</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 rounded text-center" style="background:var(--bg);border:2px dashed var(--border);">
+                        <i class="bi bi-file-earmark-image" style="font-size:64px;color:var(--text-muted);"></i>
+                        <h6 class="mt-2">Aadhaar Card - Back</h6>
+                        <p style="font-size:12px;color:var(--text-muted);">Uploaded: 29 Sep 2026</p>
+                        <button class="btn btn-sm btn-light"><i class="bi bi-zoom-in me-1"></i>View Full Size</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 rounded text-center" style="background:var(--bg);border:2px dashed var(--border);">
+                        <i class="bi bi-file-earmark-image" style="font-size:64px;color:var(--text-muted);"></i>
+                        <h6 class="mt-2">Driving Licence - Front</h6>
+                        <p style="font-size:12px;color:var(--text-muted);">Uploaded: 29 Sep 2026</p>
+                        <button class="btn btn-sm btn-light"><i class="bi bi-zoom-in me-1"></i>View Full Size</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 rounded text-center" style="background:var(--bg);border:2px dashed var(--border);">
+                        <i class="bi bi-person-bounding-box" style="font-size:64px;color:var(--text-muted);"></i>
+                        <h6 class="mt-2">Selfie with Document</h6>
+                        <p style="font-size:12px;color:var(--text-muted);">Uploaded: 29 Sep 2026</p>
+                        <button class="btn btn-sm btn-light"><i class="bi bi-zoom-in me-1"></i>View Full Size</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="detail-card">
+            <h5>Verification Notes</h5>
+            <form class="admin-form">
+                <div class="mb-3">
+                    <label class="form-label">Add Verification Note</label>
+                    <textarea class="form-control" rows="3" placeholder="Enter any notes about the KYC verification..."></textarea>
+                </div>
+                <button type="button" class="btn-primary-custom" data-action-btn="add-note"><i class="bi bi-plus-lg me-1"></i>Add Note</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

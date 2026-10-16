@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+{% block title %}Inspections{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Vehicle Inspections</h1><p>Track vehicle condition inspections</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addInspectionModal"><i class="bi bi-plus-lg"></i> New Inspection</button></div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" class="d-flex w-100 gap-3 align-items-center flex-wrap" id="filterForm">
+        <div class="filter-search flex-grow-1" style="max-width: 300px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" placeholder="Search vehicle or inspector..." value="{{ request.GET.search }}">
+        </div>
+        <select name="condition" class="form-select" style="width: auto;" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Conditions</option>
+            <option value="Excellent" {% if request.GET.condition == 'Excellent' %}selected{% endif %}>Excellent</option>
+            <option value="Good" {% if request.GET.condition == 'Good' %}selected{% endif %}>Good</option>
+            <option value="Fair" {% if request.GET.condition == 'Fair' %}selected{% endif %}>Fair</option>
+            <option value="Poor" {% if request.GET.condition == 'Poor' %}selected{% endif %}>Poor</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary" style="display: none;">Filter</button>
+    </form>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Vehicle</th><th>Inspection Date</th><th>Inspector</th><th>Condition</th><th>Passed</th><th>Notes</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for i in inspections %}
+                <tr>
+                    <td class="cell-bold">{{ i.vehicle.vehicle_number }}</td>
+                    <td>{{ i.inspection_date|date:"d M Y" }}</td>
+                    <td>{{ i.inspector_name }}</td>
+                    <td><span class="status-badge badge-active">{{ i.overall_condition }}</span></td>
+                    <td>{{ i.passed|yesno:"Yes,No" }}</td>
+                    <td>{{ i.notes }}</td>
+                    <td><div class="d-flex gap-1"><button class="btn-sm-action" onclick="openEditModal('inspection', '{{ i.id }}')"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-url="/api/inspections/{{ i.id }}/"><i class="bi bi-trash"></i></button></div></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addInspectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Inspection</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="addInspectionForm" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Vehicle ID / No.</label>
+                        <input list="vehiclesList" name="vehicle_id" class="form-control" placeholder="Type or select vehicle..." required>
+                        <datalist id="vehiclesList">
+                            {% for v in vehicles %}
+                                <option value="{{ v.id }} - {{ v.vehicle_number }} - {{ v.brand }} {{ v.model }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="mb-3"><label>Inspector Name</label><input type="text" name="inspector_name" class="form-control" required></div>
+                    <div class="mb-3">
+                        <label>Condition</label>
+                        <select name="condition" class="form-select">
+                            <option value="Excellent">Excellent</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Notes</label><textarea name="notes" class="form-control"></textarea></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button type="submit" form="addInspectionForm" class="btn-primary-custom">Save</button></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

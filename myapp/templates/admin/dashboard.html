@@ -1,0 +1,306 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Overview of your bike rental business</p>
+    </div>
+    <div class="page-header-actions">
+        <form method="GET" id="dashboardPeriodForm" class="d-inline-flex align-items-center">
+            <select id="dashboardPeriodSelect" name="period" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:var(--radius);" onchange="this.form.submit()">
+                <option value="Today" {% if period == 'Today' %}selected{% endif %}>Today</option>
+                <option value="Last 7 Days" {% if period == 'Last 7 Days' %}selected{% endif %}>Last 7 Days</option>
+                <option value="Last 30 Days" {% if period == 'Last 30 Days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="This Month" {% if period == 'This Month' %}selected{% endif %}>This Month</option>
+                <option value="This Year" {% if period == 'This Year' %}selected{% endif %}>This Year</option>
+            </select>
+        </form>
+        <button class="btn-outline-custom" data-export="pdf"><i class="bi bi-download"></i> Export</button>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon primary"><i class="bi bi-people-fill"></i></div>
+            <div class="card-label">Total Customers</div>
+            <div class="card-value">{{ stats.total_customers|default:"0" }}</div>
+            <div class="card-change positive"><i class="bi bi-arrow-up"></i> Active Users</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon info"><i class="bi bi-truck"></i></div>
+            <div class="card-label">Total Vehicles</div>
+            <div class="card-value">{{ stats.total_vehicles|default:"0" }}</div>
+            <div class="card-change positive"><i class="bi bi-plus-circle"></i> Fleet size</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon success"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="card-label">Available Vehicles</div>
+            <div class="card-value">{{ stats.available_vehicles|default:"0" }}</div>
+            <div class="card-change neutral">{{ stats.available_pct|default:"0" }}% of fleet</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon warning"><i class="bi bi-journal-bookmark-fill"></i></div>
+            <div class="card-label">Active Rentals</div>
+            <div class="card-value">{{ stats.active_rentals|default:"0" }}</div>
+            <div class="card-change positive"><i class="bi bi-arrow-up"></i> Ongoing rentals</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon info"><i class="bi bi-calendar-check-fill"></i></div>
+            <div class="card-label">{{ period_label }} Bookings</div>
+            <div class="card-value">{{ stats.period_bookings|default:"0" }}</div>
+            <div class="card-change positive"><i class="bi bi-calendar-check"></i> Filtered by {{ period }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon success"><i class="bi bi-currency-rupee"></i></div>
+            <div class="card-label">{{ period_label }} Revenue</div>
+            <div class="card-value">₹{{ stats.period_revenue|floatformat:0 }}</div>
+            <div class="card-change positive"><i class="bi bi-currency-rupee"></i> Filtered by {{ period }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon purple"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="card-label">Active Subscriptions</div>
+            <div class="card-value">{{ stats.active_subscriptions|default:"0" }}</div>
+            <div class="card-change positive"><i class="bi bi-arrow-up"></i> Active members</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon danger"><i class="bi bi-shield-exclamation"></i></div>
+            <div class="card-label">Pending KYC</div>
+            <div class="card-value">{{ stats.pending_kyc|default:"0" }}</div>
+            <div class="card-change {% if stats.pending_kyc > 0 %}negative{% else %}positive{% endif %}"><i class="bi bi-exclamation-triangle"></i> Needs attention</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon warning"><i class="bi bi-wrench-adjustable"></i></div>
+            <div class="card-label">Maintenance Vehicles</div>
+            <div class="card-value">{{ stats.maintenance_vehicles|default:"0" }}</div>
+            <div class="card-change neutral">{{ stats.maintenance_pct|default:"0" }}% of fleet</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-8">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Booking Trends</h5>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-light active" id="btnBookingMonthly">Monthly</button>
+                    <button type="button" class="btn btn-sm btn-light" id="btnBookingWeekly">Weekly</button>
+                </div>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="bookingTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Booking Status</h5>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="bookingStatusChart"
+                        data-pending="{{ status_counts.pending|default:0 }}"
+                        data-confirmed="{{ status_counts.confirmed|default:0 }}"
+                        data-active="{{ status_counts.active|default:0 }}"
+                        data-completed="{{ status_counts.completed|default:0 }}"
+                        data-cancelled="{{ status_counts.cancelled|default:0 }}">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-8">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Revenue Trends</h5>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="revenueTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Vehicle Distribution</h5>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:320px;">
+                    <canvas id="vehicleTypeChart"
+                        data-bike="{{ vehicle_type_counts.bike|default:0 }}"
+                        data-scooter="{{ vehicle_type_counts.scooter|default:0 }}"
+                        data-ev="{{ vehicle_type_counts.ev|default:0 }}">
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Utilization -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Vehicle Utilization (This Week)</h5>
+            </div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:300px;">
+                    <canvas id="vehicleUtilizationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>{{ period_label }} Bookings</h5>
+                <a href="{% url 'admin_bookings' %}" class="btn-outline-custom btn-sm">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Pickup Point</th>
+                            <th>Drop Point</th>
+                            <th>Pickup Date</th>
+                            <th>Pickup Time</th>
+                            <th>Return Date</th>
+                            <th>Return Time</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bookings %}
+                        <tr>
+                            <td><a href="{% url 'admin_booking_detail' b.booking_id %}" class="cell-link">#{{ b.booking_id }}</a></td>
+                            <td class="cell-bold">{{ b.customer.full_name }}</td>
+                            <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                            <td>{{ b.pickup_location.name|default:"Main Hub" }}</td>
+                            <td>{{ b.drop_location.name|default:"Main Hub" }}</td>
+                            <td>{{ b.start_datetime|date:"d M Y" }}</td>
+                            <td>{{ b.start_datetime|date:"h:i A" }}</td>
+                            <td>{{ b.end_datetime|date:"d M Y" }}</td>
+                            <td>{{ b.end_datetime|date:"h:i A" }}</td>
+                            <td class="cell-bold">₹{{ b.total_amount }}</td>
+                            <td>
+                                {% if b.status == 'Confirmed' %}
+                                    <span class="status-badge badge-confirmed">Confirmed</span>
+                                {% elif b.status == 'Active' %}
+                                    <span class="status-badge badge-active">Active</span>
+                                {% elif b.status == 'Completed' %}
+                                    <span class="status-badge badge-completed">Completed</span>
+                                {% elif b.status == 'Cancelled' %}
+                                    <span class="status-badge badge-cancelled">Cancelled</span>
+                                {% else %}
+                                    <span class="status-badge badge-pending">{{ b.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td><a href="{% url 'admin_booking_detail' b.booking_id %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center text-muted py-4">No bookings found for {{ period }}.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Pickups Table -->
+<div class="row g-3">
+    <div class="col-12">
+        <div class="panel-card">
+            <div class="panel-card-header">
+                <h5>Upcoming Pickups</h5>
+                <a href="{% url 'admin_pickup_drop' %}" class="btn-outline-custom btn-sm">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Pickup Point</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in upcoming_pickups %}
+                        <tr>
+                            <td><a href="{% url 'admin_booking_detail' b.booking_id %}" class="cell-link">#{{ b.booking_id }}</a></td>
+                            <td class="cell-bold">{{ b.customer.full_name }}</td>
+                            <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                            <td>{{ b.pickup_location.name|default:"Main Hub" }}</td>
+                            <td>{{ b.start_datetime|date:"d M Y" }}</td>
+                            <td>{{ b.start_datetime|date:"h:i A" }}</td>
+                            <td>
+                                {% if b.status == 'Confirmed' %}
+                                    <span class="status-badge badge-confirmed">Ready</span>
+                                {% elif b.status == 'Scheduled' %}
+                                    <span class="status-badge badge-scheduled">Scheduled</span>
+                                {% elif b.status == 'Active' %}
+                                    <span class="status-badge badge-active">Active</span>
+                                {% else %}
+                                    <span class="status-badge badge-pending">{{ b.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">No upcoming pickups scheduled.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

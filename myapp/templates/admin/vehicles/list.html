@@ -1,0 +1,515 @@
+{% extends "admin/base.html" %}
+{% block title %}Vehicles{% endblock %}
+
+{% block extra_css %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1>Vehicles</h1>
+        <p>Manage your vehicle fleet</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button>
+        <a href="{% url 'admin_vehicle_form' %}" class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Add
+            Vehicle</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Total Vehicles</div>
+            <div class="card-value" style="font-size:22px;">{{ stats.total|default:"486" }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Available</div>
+            <div class="card-value" style="font-size:22px;color:var(--success);">{{ stats.available|default:"284" }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Rented</div>
+            <div class="card-value" style="font-size:22px;color:var(--info);">{{ stats.rented|default:"168" }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Maintenance</div>
+            <div class="card-value" style="font-size:22px;color:var(--warning);">{{ stats.maintenance|default:"18" }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text"
+            placeholder="Search by vehicle number, brand or model..."></div>
+    <select>
+        <option value="">Vehicle Type</option>
+        <option>Bike</option>
+        <option>Scooter</option>
+        <option>EV</option>
+    </select>
+    <select>
+        <option value="">Fuel Type</option>
+        <option>Petrol</option>
+        <option>Electric</option>
+    </select>
+    <select>
+        <option value="">Availability</option>
+        <option>Available</option>
+        <option>Rented</option>
+        <option>Reserved</option>
+        <option>Maintenance</option>
+        <option>Inactive</option>
+    </select>
+    <select>
+        <option value="">Location</option>
+        <option>Ranchi Station</option>
+        <option>Lalpur Chowk</option>
+        <option>Main Road Hub</option>
+        <option>Doranda</option>
+    </select>
+    <select>
+        <option value="">Franchise</option>
+        <option>Ranchi Main</option>
+        <option>Patna Central</option>
+        <option>Delhi Hub</option>
+    </select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="form-check-input select-all-check"></th>
+                    <th>Image</th>
+                    <th>Vehicle Number</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Type</th>
+                    <th>Fuel</th>
+                    <th>Current Location</th>
+                    <th>Rental Price</th>
+                    <th>Availability</th>
+                    <th>Maintenance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if vehicles %}
+                    {% for v in vehicles %}
+                    <tr>
+                        <td><input type="checkbox" class="form-check-input row-check"></td>
+                        <td>
+                            <div class="vehicle-img-thumb" id="thumb-{{ v.id }}" data-id="{{ v.id }}" data-name="{{ v.brand }} {{ v.model }}"
+                                data-plate="{{ v.vehicle_number }}" data-type="{{ v.category.name|default:v.fuel_type }}"
+                                data-img="{{ v.image|default:'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400&auto=format&fit=crop&q=80' }}"
+                                onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                                <img src="{{ v.image|default:'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400&auto=format&fit=crop&q=80' }}"
+                                    alt="{{ v.brand }} {{ v.model }}" class="vehicle-thumb-img">
+                                <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                            </div>
+                        </td>
+                        <td class="cell-bold"><a href="{% url 'admin_vehicle_detail' v.vehicle_id %}" style="text-decoration:none;color:inherit;">{{ v.vehicle_number }}</a></td>
+                        <td>{{ v.brand }}</td>
+                        <td>{{ v.model }}</td>
+                        <td>{{ v.category.name|default:"Scooter" }}</td>
+                        <td>{{ v.fuel_type }}</td>
+                        <td>{{ v.current_location.name|default:"Main Hub" }}</td>
+                        <td>₹{{ v.rental_price_per_day }}/day</td>
+                        <td><span class="status-badge badge-{{ v.availability_status|lower }}">{{ v.availability_status }}</span></td>
+                        <td><span class="status-badge badge-active">Good</span></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn-sm-action" title="Change Image"
+                                    onclick="openVehicleImageModalForId('{{ v.id }}')"><i class="bi bi-image"></i></button>
+                                <a href="{% url 'admin_vehicle_detail' v.vehicle_id %}" class="btn-sm-action" title="View"><i
+                                        class="bi bi-eye"></i></a>
+                                <button class="btn-sm-action" title="Edit" onclick="openEditModal('vehicle', '{{ v.vehicle_id }}')"><i class="bi bi-pencil"></i></button>
+                                <button class="btn-sm-action" title="Maintenance" data-bs-toggle="modal"
+                                    data-bs-target="#confirmActionModal" data-action="maintenance"
+                                    data-item="{{ v.vehicle_number }}"
+                                    data-api-url="/api/maintenance/"
+                                    data-api-payload='{"vehicle_id": {{ v.id }}, "maintenance_type": "Routine Service"}'><i class="bi bi-wrench"></i></button>
+                                <button class="btn-sm-action danger" title="Delete" data-bs-toggle="modal"
+                                    data-bs-target="#confirmActionModal" data-action="delete"
+                                    data-item="{{ v.vehicle_number }}"
+                                    data-api-url="/api/vehicles/{{ v.vehicle_id }}/"
+                                    data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+
+                <!-- Row 2: TVS Jupiter -->
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="vehicle-img-thumb" id="thumb-2" data-id="2" data-name="TVS Jupiter"
+                            data-plate="JH01 CD 5678" data-type="Scooter"
+                            data-img="https://images.unsplash.com/photo-1558980664-3a031cf67ea8?w=400&auto=format&fit=crop&q=80"
+                            onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                            <img src="https://images.unsplash.com/photo-1558980664-3a031cf67ea8?w=400&auto=format&fit=crop&q=80"
+                                alt="TVS Jupiter" class="vehicle-thumb-img">
+                            <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                        </div>
+                    </td>
+                    <td class="cell-bold">JH01 CD 5678</td>
+                    <td>TVS</td>
+                    <td>Jupiter</td>
+                    <td>Scooter</td>
+                    <td>Petrol</td>
+                    <td>Lalpur Chowk</td>
+                    <td>₹350/day</td>
+                    <td><span class="status-badge badge-rented">Rented</span></td>
+                    <td><span class="status-badge badge-active">Good</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" title="Change Image"
+                                onclick="openVehicleImageModalForId('2')"><i class="bi bi-image"></i></button>
+                            <a href="{% url 'admin_vehicle_detail' 2 %}" class="btn-sm-action" title="View"><i
+                                    class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action" title="Maintenance" data-bs-toggle="modal"
+                                data-bs-target="#confirmActionModal" data-action="maintenance"
+                                data-item="JH01 CD 5678"><i class="bi bi-wrench"></i></button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 3: Royal Enfield Classic 350 -->
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="vehicle-img-thumb" id="thumb-3" data-id="3" data-name="Royal Enfield Classic 350"
+                            data-plate="JH01 EF 9012" data-type="Bike"
+                            data-img="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&auto=format&fit=crop&q=80"
+                            onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                            <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&auto=format&fit=crop&q=80"
+                                alt="Royal Enfield Classic 350" class="vehicle-thumb-img">
+                            <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                        </div>
+                    </td>
+                    <td class="cell-bold">JH01 EF 9012</td>
+                    <td>Royal Enfield</td>
+                    <td>Classic 350</td>
+                    <td>Bike</td>
+                    <td>Petrol</td>
+                    <td>Main Road Hub</td>
+                    <td>₹900/day</td>
+                    <td><span class="status-badge badge-available">Available</span></td>
+                    <td><span class="status-badge badge-active">Good</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" title="Change Image"
+                                onclick="openVehicleImageModalForId('3')"><i class="bi bi-image"></i></button>
+                            <a href="{% url 'admin_vehicle_detail' 3 %}" class="btn-sm-action" title="View"><i
+                                    class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action" title="Maintenance" data-bs-toggle="modal"
+                                data-bs-target="#confirmActionModal" data-action="maintenance"
+                                data-item="JH01 EF 9012"><i class="bi bi-wrench"></i></button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 4: Bajaj Pulsar 150 -->
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="vehicle-img-thumb" id="thumb-4" data-id="4" data-name="Bajaj Pulsar 150"
+                            data-plate="JH01 GH 3456" data-type="Bike"
+                            data-img="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=400&auto=format&fit=crop&q=80"
+                            onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                            <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=400&auto=format&fit=crop&q=80"
+                                alt="Bajaj Pulsar 150" class="vehicle-thumb-img">
+                            <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                        </div>
+                    </td>
+                    <td class="cell-bold">JH01 GH 3456</td>
+                    <td>Bajaj</td>
+                    <td>Pulsar 150</td>
+                    <td>Bike</td>
+                    <td>Petrol</td>
+                    <td>Doranda</td>
+                    <td>₹500/day</td>
+                    <td><span class="status-badge badge-maintenance">Maintenance</span></td>
+                    <td><span class="status-badge badge-warning">In Service</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" title="Change Image"
+                                onclick="openVehicleImageModalForId('4')"><i class="bi bi-image"></i></button>
+                            <a href="{% url 'admin_vehicle_detail' 4 %}" class="btn-sm-action" title="View"><i
+                                    class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action" title="Edit"><i class="bi bi-pencil"></i></button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 5: Ola S1 -->
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="vehicle-img-thumb" id="thumb-5" data-id="5" data-name="Ola S1"
+                            data-plate="JH01 IJ 7890" data-type="EV"
+                            data-img="https://images.unsplash.com/photo-1571188654249-7a9621765689?w=400&auto=format&fit=crop&q=80"
+                            onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                            <img src="https://images.unsplash.com/photo-1571188654249-7a9621765689?w=400&auto=format&fit=crop&q=80"
+                                alt="Ola S1" class="vehicle-thumb-img">
+                            <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                        </div>
+                    </td>
+                    <td class="cell-bold">JH01 IJ 7890</td>
+                    <td>Ola</td>
+                    <td>S1</td>
+                    <td>EV</td>
+                    <td>Electric</td>
+                    <td>Morabadi</td>
+                    <td>₹450/day</td>
+                    <td><span class="status-badge badge-reserved">Reserved</span></td>
+                    <td><span class="status-badge badge-active">Good</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" title="Change Image"
+                                onclick="openVehicleImageModalForId('5')"><i class="bi bi-image"></i></button>
+                            <a href="{% url 'admin_vehicle_detail' 5 %}" class="btn-sm-action" title="View"><i
+                                    class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action" title="Maintenance" data-bs-toggle="modal"
+                                data-bs-target="#confirmActionModal" data-action="maintenance"
+                                data-item="JH01 IJ 7890"><i class="bi bi-wrench"></i></button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Row 6: Ather 450X -->
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="vehicle-img-thumb" id="thumb-6" data-id="6" data-name="Ather 450X"
+                            data-plate="JH01 KL 2345" data-type="EV"
+                            data-img="https://images.unsplash.com/photo-1596700683072-52026cf26ce3?w=400&auto=format&fit=crop&q=80"
+                            onclick="openVehicleImageModal(this)" title="Click to view or change image">
+                            <img src="https://images.unsplash.com/photo-1596700683072-52026cf26ce3?w=400&auto=format&fit=crop&q=80"
+                                alt="Ather 450X" class="vehicle-thumb-img">
+                            <div class="vehicle-img-overlay"><i class="bi bi-camera-fill"></i></div>
+                        </div>
+                    </td>
+                    <td class="cell-bold">JH01 KL 2345</td>
+                    <td>Ather</td>
+                    <td>450X</td>
+                    <td>EV</td>
+                    <td>Electric</td>
+                    <td>Ranchi Station</td>
+                    <td>₹550/day</td>
+                    <td><span class="status-badge badge-available">Available</span></td>
+                    <td><span class="status-badge badge-active">Good</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" title="Change Image"
+                                onclick="openVehicleImageModalForId('6')"><i class="bi bi-image"></i></button>
+                            <a href="{% url 'admin_vehicle_detail' 6 %}" class="btn-sm-action" title="View"><i
+                                    class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action" title="Maintenance" data-bs-toggle="modal"
+                                data-bs-target="#confirmActionModal" data-action="maintenance"
+                                data-item="JH01 KL 2345"><i class="bi bi-wrench"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing 1 to 6 of 486 entries</div>
+        <div class="page-links">
+            <div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div>
+            <div class="page-link-item active">1</div>
+            <div class="page-link-item">2</div>
+            <div class="page-link-item">3</div>
+            <div class="page-link-item">...</div>
+            <div class="page-link-item">81</div>
+            <div class="page-link-item"><i class="bi bi-chevron-right"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ VEHICLE IMAGE MODAL ============ -->
+<div class="modal fade" id="vehicleImageModal" tabindex="-1" aria-labelledby="vehicleImageModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content"
+            style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border, #e2e8f0); padding: 16px 20px;">
+                <div>
+                    <h5 class="modal-title mb-0" id="modalVehicleName" style="font-size: 17px; font-weight: 600;">
+                        Vehicle Image</h5>
+                    <small class="text-muted" id="modalVehiclePlate">JH01 AB 1234</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Full Preview -->
+                <div class="image-preview-container">
+                    <img id="modalVehicleImgPreview" src="" alt="Vehicle Preview">
+                </div>
+
+                <!-- Upload Drag & Drop Area -->
+                <div class="image-upload-dropzone" id="dropZone"
+                    onclick="document.getElementById('vehicleImageFileInput').click()">
+                    <i class="bi bi-cloud-arrow-up" style="font-size: 32px; color: var(--accent, #ff4757);"></i>
+                    <h6 style="margin: 8px 0 4px; font-size: 14px; font-weight: 600;">Click to upload or drag & drop
+                    </h6>
+                    <p style="margin: 0; font-size: 12px; color: var(--text-muted, #94a3b8);">PNG, JPG, or WEBP (Max
+                        5MB)</p>
+                </div>
+                <input type="file" id="vehicleImageFileInput" accept="image/*" class="d-none"
+                    onchange="handleImageFileSelect(event)">
+            </div>
+            <div class="modal-footer d-flex justify-content-between"
+                style="border-top: 1px solid var(--border, #e2e8f0); padding: 14px 20px;">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeVehicleImage()">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom btn-sm" onclick="saveVehicleImage()">
+                        <i class="bi bi-check2"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentEditingVehicleId = null;
+    let currentSelectedDataUrl = null;
+
+    function openVehicleImageModal(elem) {
+        const id = elem.getAttribute('data-id');
+        const name = elem.getAttribute('data-name');
+        const plate = elem.getAttribute('data-plate');
+        const imgUrl = elem.getAttribute('data-img');
+
+        currentEditingVehicleId = id;
+        currentSelectedDataUrl = null;
+
+        document.getElementById('modalVehicleName').innerText = name;
+        document.getElementById('modalVehiclePlate').innerText = plate;
+        document.getElementById('modalVehicleImgPreview').src = imgUrl;
+
+        const modal = new bootstrap.Modal(document.getElementById('vehicleImageModal'));
+        modal.show();
+    }
+
+    function openVehicleImageModalForId(id) {
+        const thumb = document.getElementById('thumb-' + id);
+        if (thumb) {
+            openVehicleImageModal(thumb);
+        }
+    }
+
+    function handleImageFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please choose an image file (PNG, JPG, etc.).');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            currentSelectedDataUrl = e.target.result;
+            document.getElementById('modalVehicleImgPreview').src = currentSelectedDataUrl;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Drag & Drop handlers
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                currentSelectedDataUrl = evt.target.result;
+                document.getElementById('modalVehicleImgPreview').src = currentSelectedDataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+    }, false);
+
+    function saveVehicleImage() {
+        if (!currentEditingVehicleId) return;
+
+        const newSrc = currentSelectedDataUrl || document.getElementById('modalVehicleImgPreview').src;
+        const thumbContainer = document.getElementById('thumb-' + currentEditingVehicleId);
+
+        if (thumbContainer) {
+            thumbContainer.setAttribute('data-img', newSrc);
+            const img = thumbContainer.querySelector('.vehicle-thumb-img');
+            if (img) {
+                img.src = newSrc;
+            }
+        }
+
+        // Close Modal
+        const modalEl = document.getElementById('vehicleImageModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+
+        // Show toast or confirmation
+        const toastContainer = document.getElementById('toastContainer');
+        if (toastContainer) {
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-bg-success border-0 show';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body"><i class="bi bi-check-circle-fill me-2"></i> Vehicle image updated successfully!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+    }
+
+    function removeVehicleImage() {
+        const defaultPlaceholder = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400&auto=format&fit=crop&q=80";
+        currentSelectedDataUrl = defaultPlaceholder;
+        document.getElementById('modalVehicleImgPreview').src = defaultPlaceholder;
+    }
+</script>
+{% endblock %}

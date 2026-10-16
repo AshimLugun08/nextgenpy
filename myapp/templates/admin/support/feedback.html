@@ -1,0 +1,28 @@
+{% extends "admin/base.html" %}
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Customer Feedback</h1><p>View customer ratings and reviews</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Average Rating</div><div class="card-value" style="font-size:22px;">4.5 <i class="bi bi-star-fill" style="color:var(--warning);font-size:16px;"></i></div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Total Reviews</div><div class="card-value" style="font-size:22px;">2,456</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">5 Star</div><div class="card-value" style="font-size:22px;color:var(--success);">1,248</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">1-2 Star</div><div class="card-value" style="font-size:22px;color:var(--danger);">86</div></div></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Customer</th><th>Booking</th><th>Vehicle</th><th>Rating</th><th>Review</th><th>Date</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-bold">Rahul Kumar</td><td class="cell-link">#BK10198</td><td>TVS Jupiter</td><td><span style="color:var(--warning);">★★★★★</span> 5.0</td><td>Excellent service! Vehicle was clean and well maintained.</td><td>23 Sep 2026</td></tr>
+                <tr><td class="cell-bold">Vikash Gupta</td><td class="cell-link">#BK10180</td><td>Bajaj Pulsar 150</td><td><span style="color:var(--warning);">★★★★</span>☆ 4.0</td><td>Good experience. Pickup was smooth. Would suggest better helmets.</td><td>20 Sep 2026</td></tr>
+                <tr><td class="cell-bold">Priya Sharma</td><td class="cell-link">#BK10175</td><td>Honda Activa 6G</td><td><span style="color:var(--warning);">★★★★★</span> 5.0</td><td>Very convenient and affordable. Will use again!</td><td>18 Sep 2026</td></tr>
+                <tr><td class="cell-bold">Deepak Yadav</td><td class="cell-link">#BK10170</td><td>Ola S1</td><td><span style="color:var(--warning);">★★★</span>☆☆ 3.0</td><td>EV battery was not fully charged at pickup. Otherwise good.</td><td>16 Sep 2026</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

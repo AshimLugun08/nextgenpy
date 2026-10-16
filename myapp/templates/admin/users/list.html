@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% block title %}Admin Users{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Admin Users</h1><p>Manage admin accounts and permissions</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Add Admin</button></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Franchise</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Rajesh+Kumar&background=002B5B&color=fff&size=40" alt=""><div class="cell-bold">Rajesh Kumar</div></div></td><td>rajesh@bikerentals.com</td><td>+91 99876 54321</td><td><span class="status-badge badge-danger">Super Admin</span></td><td>All</td><td>30 Sep 2026, 10:40 AM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button></div></td></tr>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Priya+Staff&background=FF6B00&color=fff&size=40" alt=""><div class="cell-bold">Priya Verma</div></div></td><td>priya.v@bikerentals.com</td><td>+91 88765 43210</td><td><span class="status-badge badge-info">Operations Staff</span></td><td>Ranchi Main</td><td>30 Sep 2026, 09:15 AM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger"><i class="bi bi-trash"></i></button></div></td></tr>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Rahul+Staff&background=10B981&color=fff&size=40" alt=""><div class="cell-bold">Rahul Sinha</div></div></td><td>rahul.s@bikerentals.com</td><td>+91 77654 32109</td><td><span class="status-badge badge-info">Support Staff</span></td><td>All</td><td>29 Sep 2026, 06:30 PM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger"><i class="bi bi-trash"></i></button></div></td></tr>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Suresh+Kumar&background=8B5CF6&color=fff&size=40" alt=""><div class="cell-bold">Suresh Kumar</div></div></td><td>suresh@bikerentals.com</td><td>+91 66543 21098</td><td><span class="status-badge badge-warning">Maintenance Staff</span></td><td>Ranchi Main</td><td>30 Sep 2026, 08:00 AM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger"><i class="bi bi-trash"></i></button></div></td></tr>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Manoj+Yadav&background=F59E0B&color=fff&size=40" alt=""><div class="cell-bold">Manoj Yadav</div></div></td><td>manoj@bikerentals.com</td><td>+91 55432 10987</td><td><span class="status-badge badge-purple">Franchise Owner</span></td><td>Patna Central</td><td>28 Sep 2026, 04:15 PM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button></div></td></tr>
+                <tr><td><div class="cell-avatar"><img src="https://ui-avatars.com/api/?name=Neha+Finance&background=3B82F6&color=fff&size=40" alt=""><div class="cell-bold">Neha Agarwal</div></div></td><td>neha.a@bikerentals.com</td><td>+91 44321 09876</td><td><span class="status-badge badge-active">Finance Staff</span></td><td>All</td><td>29 Sep 2026, 05:00 PM</td><td><span class="status-badge badge-active">Active</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-pencil"></i></button><button class="btn-sm-action danger"><i class="bi bi-trash"></i></button></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+{% block title %}Offers & Coupons{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Offers & Coupons</h1><p>Manage discount offers, coupons, and promotional campaigns</p></div>
+    <div class="page-header-actions"><a href="{% url 'admin_offer_form' %}" class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Create Coupon</a></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All Coupons <span class="tab-count">{{ offers|length }}</span></div>
+    <div class="tab-item">Active <span class="tab-count">{{ offers|length }}</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search coupon code or title..."></div>
+    <select><option value="">Discount Type</option><option>percentage</option><option>flat</option></select>
+    <select><option value="">All Statuses</option><option>Active</option><option>Inactive</option></select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Coupon Code</th><th>Title</th><th>Discount Type</th><th>Discount Value</th><th>Valid To</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for o in offers %}
+                <tr>
+                    <td class="cell-bold" style="font-family:monospace;">{{ o.code }}</td>
+                    <td>{{ o.title }}</td>
+                    <td>{{ o.discount_type|capfirst }}</td>
+                    <td class="cell-bold">{% if o.discount_type == 'percentage' %}{{ o.discount_value }}%{% else %}₹{{ o.discount_value }}{% endif %}</td>
+                    <td>{{ o.valid_to|date:"d M Y"|default:"31 Dec 2026" }}</td>
+                    <td>
+                        <span class="status-badge {% if o.is_active %}badge-active{% else %}badge-expired{% endif %}">
+                            {% if o.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action text-primary" title="Edit" onclick="openEditModal('offer', '{{ o.code }}', this)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action text-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-item="Coupon {{ o.code }}" data-api-url="/api/offers/{{ o.code }}/" data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No coupons found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

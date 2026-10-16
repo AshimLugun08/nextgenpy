@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Invoices</h1><p>View and manage rental invoices</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export All</button></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Invoice No.</th><th>Booking ID</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Payment</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-bold">#INV-2026-0245</td><td class="cell-link">#BK10245</td><td>Rahul Kumar</td><td>Honda Activa 6G</td><td class="cell-bold">₹2,885</td><td><span class="status-badge badge-paid">Paid</span></td><td>30 Sep 2026</td><td><div class="d-flex gap-1"><a href="{% url 'admin_invoice_detail' 'INV-2026-0245' %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a><button class="btn-sm-action btn-print" title="Print"><i class="bi bi-printer"></i></button><button class="btn-sm-action" title="Download" data-export="pdf"><i class="bi bi-download"></i></button></div></td></tr>
+                <tr><td class="cell-bold">#INV-2026-0246</td><td class="cell-link">#BK10246</td><td>Priya Sharma</td><td>TVS Jupiter</td><td class="cell-bold">₹1,450</td><td><span class="status-badge badge-paid">Paid</span></td><td>30 Sep 2026</td><td><div class="d-flex gap-1"><a href="{% url 'admin_invoice_detail' 'INV-2026-0246' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a><button class="btn-sm-action btn-print"><i class="bi bi-printer"></i></button><button class="btn-sm-action" data-export="pdf"><i class="bi bi-download"></i></button></div></td></tr>
+                <tr><td class="cell-bold">#INV-2026-0249</td><td class="cell-link">#BK10249</td><td>Vikash Gupta</td><td>Bajaj Pulsar 150</td><td class="cell-bold">₹2,600</td><td><span class="status-badge badge-paid">Paid</span></td><td>30 Sep 2026</td><td><div class="d-flex gap-1"><a href="{% url 'admin_invoice_detail' 'INV-2026-0249' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a><button class="btn-sm-action btn-print"><i class="bi bi-printer"></i></button><button class="btn-sm-action" data-export="pdf"><i class="bi bi-download"></i></button></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

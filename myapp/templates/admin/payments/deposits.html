@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block title %}Security Deposits{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Security Deposits</h1><p>Track and manage security deposit collections and refunds</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Deposit Amount</th><th>Collected</th><th>Deduction</th><th>Refund Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-link">#BK10245</td><td class="cell-bold">Rahul Kumar</td><td>Honda Activa 6G</td><td>₹2,000</td><td><span class="status-badge badge-paid">Yes</span></td><td>₹0</td><td>₹2,000</td><td><span class="status-badge badge-pending">Pending Refund</span></td><td><button class="btn-sm-action" data-action-btn="refund-deposit"><i class="bi bi-arrow-return-left"></i></button></td></tr>
+                <tr><td class="cell-link">#BK10246</td><td class="cell-bold">Priya Sharma</td><td>TVS Jupiter</td><td>₹1,000</td><td><span class="status-badge badge-paid">Yes</span></td><td>₹0</td><td>₹1,000</td><td><span class="status-badge badge-info">Active Rental</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+                <tr><td class="cell-link">#BK10249</td><td class="cell-bold">Vikash Gupta</td><td>Bajaj Pulsar 150</td><td>₹2,000</td><td><span class="status-badge badge-paid">Yes</span></td><td>₹200</td><td>₹1,800</td><td><span class="status-badge badge-completed">Refunded</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+                <tr><td class="cell-link">#BK10250</td><td class="cell-bold">Sneha Patel</td><td>Ather 450X</td><td>₹2,500</td><td><span class="status-badge badge-paid">Yes</span></td><td>₹500</td><td>₹2,000</td><td><span class="status-badge badge-completed">Refunded</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Reports Dashboard</h1><p>Comprehensive business analytics and reporting</p></div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" data-export="csv"><i class="bi bi-file-earmark-spreadsheet"></i> Export CSV</button>
+        <button class="btn-outline-custom" data-export="excel"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+        <button class="btn-primary-custom" data-export="pdf"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+    </div>
+</div>
+
+<!-- Local html2pdf.js bundle with CDN fallback -->
+<script src="{% static 'js/html2pdf.bundle.min.js' %}"></script>
+
+<!-- Chart Data Integration -->
+<script>
+    window.reportChartLabels = {{ chart_labels|safe }};
+    window.reportRevenueData = {{ chart_revenue_data|safe }};
+    window.reportBookingCompleted = {{ chart_booking_completed|safe }};
+    window.reportBookingCancelled = {{ chart_booking_cancelled|safe }};
+</script>
+
+<!-- Report Filters -->
+<div class="detail-card mb-4 no-print">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Report Filters</h5>
+        {% if has_active_filter %}
+        <span class="badge bg-primary"><i class="bi bi-check-circle me-1"></i>Filters Active</span>
+        {% endif %}
+    </div>
+    <form method="GET" action="{% url 'admin_reports' %}" id="reportFilterForm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label" style="font-size:12px;font-weight:600;">Report Type</label>
+                <select name="report_type" class="form-select" style="font-size:13px;">
+                    <option value="Booking Reports" {% if report_type == 'Booking Reports' %}selected{% endif %}>Booking Reports</option>
+                    <option value="Revenue Reports" {% if report_type == 'Revenue Reports' %}selected{% endif %}>Revenue Reports</option>
+                    <option value="Vehicle Reports" {% if report_type == 'Vehicle Reports' %}selected{% endif %}>Vehicle Reports</option>
+                    <option value="Customer Reports" {% if report_type == 'Customer Reports' %}selected{% endif %}>Customer Reports</option>
+                    <option value="Payment Reports" {% if report_type == 'Payment Reports' %}selected{% endif %}>Payment Reports</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:12px;font-weight:600;">From Date</label>
+                <input type="date" name="from_date" value="{{ from_date }}" class="form-control" style="font-size:13px;">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:12px;font-weight:600;">To Date</label>
+                <input type="date" name="to_date" value="{{ to_date }}" class="form-control" style="font-size:13px;">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:12px;font-weight:600;">Franchise</label>
+                <select name="franchise" class="form-select" style="font-size:13px;">
+                    <option value="">All Franchises</option>
+                    {% for f in all_franchises %}
+                    <option value="{{ f.id }}" {% if franchise_val == f.id|stringformat:'s' %}selected{% endif %}>{{ f.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:12px;font-weight:600;">Vehicle Type</label>
+                <select name="vehicle_type" class="form-select" style="font-size:13px;">
+                    <option value="">All Types</option>
+                    <option value="Bike" {% if vehicle_type == 'Bike' %}selected{% endif %}>Bike</option>
+                    <option value="Scooter" {% if vehicle_type == 'Scooter' %}selected{% endif %}>Scooter</option>
+                    <option value="EV" {% if vehicle_type == 'EV' %}selected{% endif %}>EV</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn-primary-custom w-100" title="Apply Filter" style="height:38px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if has_active_filter %}
+                <a href="{% url 'admin_reports' %}" class="btn-outline-custom" title="Reset Filters" style="height:38px;display:flex;align-items:center;justify-content:center;padding:0 10px;">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="reportsDashboardExportArea">
+<!-- Revenue Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Total Revenue</div>
+            <div class="card-value" style="font-size:22px;">₹{{ total_revenue|floatformat:0 }}</div>
+            <div class="card-change positive"><i class="bi bi-arrow-up"></i> {% if has_active_filter %}Filtered{% else %}+22.4%{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Total Bookings</div>
+            <div class="card-value" style="font-size:22px;">{{ total_bookings }}</div>
+            <div class="card-change positive"><i class="bi bi-calendar-check"></i> {{ completed_bookings }} completed</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Avg. Booking Value</div>
+            <div class="card-value" style="font-size:22px;">₹{{ avg_booking_value|floatformat:0 }}</div>
+            <div class="card-change positive"><i class="bi bi-graph-up"></i> Per Booking</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="padding:16px;">
+            <div class="card-label">Cancellation Rate</div>
+            <div class="card-value" style="font-size:22px;">{{ cancellation_rate }}%</div>
+            <div class="card-change {% if cancellation_rate > 10 %}negative{% else %}positive{% endif %}"><i class="bi bi-x-circle"></i> {{ cancelled_bookings }} cancelled</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-6">
+        <div class="panel-card">
+            <div class="panel-card-header"><h5>Revenue Trends</h5></div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:300px;"><canvas id="reportRevenueChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="panel-card">
+            <div class="panel-card-header"><h5>Booking Analysis</h5></div>
+            <div class="panel-card-body">
+                <div class="chart-container" style="height:300px;"><canvas id="reportBookingChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Report Table -->
+<div class="panel-card">
+    <div class="panel-card-header d-flex align-items-center justify-content-between">
+        <h5>
+            {% if report_type == 'Revenue Reports' or report_type == 'Payment Reports' %}
+                Payment & Revenue Report ({{ payments_list|length }} entries)
+            {% elif report_type == 'Vehicle Reports' %}
+                Vehicle Fleet Report ({{ vehicles_list|length }} entries)
+            {% elif report_type == 'Customer Reports' %}
+                Customer Activity Report ({{ customers_list|length }} entries)
+            {% else %}
+                Detailed Bookings Report ({{ bookings_list|length }} entries)
+            {% endif %}
+        </h5>
+        <span class="badge bg-light text-dark border">{{ report_type }}</span>
+    </div>
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            {% if report_type == 'Revenue Reports' or report_type == 'Payment Reports' %}
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Customer</th>
+                        <th>Booking ID</th>
+                        <th>Payment Method</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments_list %}
+                    <tr>
+                        <td class="cell-link">#{{ p.payment_id|default:p.id }}</td>
+                        <td class="cell-bold">{{ p.customer.full_name|default:"N/A" }}</td>
+                        <td><a href="{% url 'admin_booking_detail' p.booking.booking_id %}" class="cell-link">#{{ p.booking.booking_id }}</a></td>
+                        <td>{{ p.payment_method|default:"UPI" }}</td>
+                        <td class="cell-bold">₹{{ p.amount }}</td>
+                        <td>{{ p.created_at|date:"d M Y, h:i A" }}</td>
+                        <td><span class="status-badge badge-{{ p.status|lower }}">{{ p.status }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">No payment records found matching the filter criteria.</td></tr>
+                    {% endfor %}
+                </tbody>
+            {% elif report_type == 'Vehicle Reports' %}
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Registration No</th>
+                        <th>Category</th>
+                        <th>Franchise</th>
+                        <th>Daily Rate</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vehicles_list %}
+                    <tr>
+                        <td class="cell-bold">{{ v.brand }} {{ v.model }}</td>
+                        <td>{{ v.vehicle_number }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ v.category.name|default:"Standard" }}</span></td>
+                        <td>{{ v.franchise.name|default:"Main Hub" }}</td>
+                        <td>₹{{ v.rental_price_per_day }}</td>
+                        <td><span class="status-badge badge-{{ v.availability_status|lower }}">{{ v.availability_status }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4 text-muted">No vehicle records found matching the filter criteria.</td></tr>
+                    {% endfor %}
+                </tbody>
+            {% elif report_type == 'Customer Reports' %}
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Bookings</th>
+                        <th>Total Spent</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in customers_list %}
+                    <tr>
+                        <td class="cell-link"><a href="{% url 'admin_customer_detail' c.customer_id %}" class="cell-link">#{{ c.customer_id }}</a></td>
+                        <td class="cell-bold">{{ c.full_name }}</td>
+                        <td>{{ c.phone }}</td>
+                        <td>{{ c.email }}</td>
+                        <td>{{ c.total_bookings }}</td>
+                        <td class="cell-bold">₹{{ c.total_spent }}</td>
+                        <td><span class="status-badge badge-{{ c.is_active|yesno:'active,blocked' }}">{{ c.is_active|yesno:'Active,Blocked' }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">No customer records found matching the filter criteria.</td></tr>
+                    {% endfor %}
+                </tbody>
+            {% else %}
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Pickup Point</th>
+                        <th>Pickup Date</th>
+                        <th>Return Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings_list %}
+                    <tr>
+                        <td><a href="{% url 'admin_booking_detail' b.booking_id %}" class="cell-link">#{{ b.booking_id }}</a></td>
+                        <td class="cell-bold">{{ b.customer.full_name }}</td>
+                        <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                        <td>{{ b.pickup_location.name|default:"Ranchi Station Hub" }}</td>
+                        <td>{{ b.start_datetime|date:"d M Y, h:i A" }}</td>
+                        <td>{{ b.end_datetime|date:"d M Y, h:i A" }}</td>
+                        <td class="cell-bold">₹{{ b.total_amount }}</td>
+                        <td>
+                            <span class="status-badge {% if b.status == 'Active' %}badge-active{% elif b.status == 'Confirmed' %}badge-confirmed{% elif b.status == 'Completed' %}badge-completed{% elif b.status == 'Pending' %}badge-pending{% else %}badge-danger{% endif %}">
+                                {{ b.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-4 text-muted">No booking records found matching the filter criteria.</td></tr>
+                    {% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Top Performing Sections -->
+<div class="row g-3 mt-3">
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-header"><h5>Top Vehicles</h5></div>
+            <div class="panel-card-body">
+                {% if top_vehicles %}
+                    {% for tv in top_vehicles %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom:1px solid var(--border-light);font-size:13px;">
+                        <div>
+                            <span class="cell-bold">{{ tv.vehicle__brand }} {{ tv.vehicle__model }}</span><br>
+                            <small class="text-muted">{{ tv.vehicle__vehicle_number }}</small>
+                        </div>
+                        <div class="text-end">
+                            <strong>{{ tv.b_count }}</strong><br>
+                            <small class="text-muted">bookings</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3" style="font-size:13px;">No vehicle bookings on record.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-header"><h5>Top Pickup Points</h5></div>
+            <div class="panel-card-body">
+                {% if top_locations %}
+                    {% for tl in top_locations %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom:1px solid var(--border-light);font-size:13px;">
+                        <div class="cell-bold">{{ tl.pickup_location__name|default:"Main Station Hub" }}</div>
+                        <div><strong>{{ tl.p_count }}</strong> pickups</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3" style="font-size:13px;">No pickup activity on record.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel-card">
+            <div class="panel-card-header"><h5>Top Customers</h5></div>
+            <div class="panel-card-body">
+                {% if top_customers %}
+                    {% for tc in top_customers %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom:1px solid var(--border-light);font-size:13px;">
+                        <div class="cell-bold">{{ tc.customer__full_name }}</div>
+                        <div><strong>₹{{ tc.spent }}</strong> spent</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3" style="font-size:13px;">No customer spending on record.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

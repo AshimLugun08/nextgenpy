@@ -1,0 +1,130 @@
+{% extends "admin/base.html" %}
+{% block title %}Bookings{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Bookings</h1><p>Manage all rental bookings</p></div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button>
+        <button class="btn-primary-custom" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+    </div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item {% if not current_status and not current_delivery_type %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}'">All <span class="tab-count">{{ stats.total|default:0 }}</span></div>
+    <div class="tab-item {% if current_delivery_type == 'Self Pickup' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?delivery_type=Self+Pickup'"><i class="bi bi-geo-alt me-1"></i>Self Pickup <span class="tab-count">{{ stats.self_pickup|default:0 }}</span></div>
+    <div class="tab-item {% if current_delivery_type == 'Doorstep' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?delivery_type=Doorstep'"><i class="bi bi-house-door me-1"></i>Doorstep <span class="tab-count">{{ stats.doorstep|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Pickup' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?status=Pickup'">Pickup <span class="tab-count">{{ stats.pickup|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Drop Off' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?status=Drop+Off'">Drop Off <span class="tab-count">{{ stats.drop_off|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Confirmed' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?status=Confirmed'">Confirmed <span class="tab-count">{{ stats.confirmed|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Active' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?status=Active'">Active Rentals <span class="tab-count">{{ stats.active|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Completed' %}active{% endif %}" onclick="window.location.href='{% url 'admin_bookings' %}?status=Completed'">Completed <span class="tab-count">{{ stats.completed|default:0 }}</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search by booking ID, customer or vehicle..." value="{{ search|default:'' }}" onkeypress="if(event.key==='Enter') window.location.href='{% url 'admin_bookings' %}?search=' + encodeURIComponent(this.value);"></div>
+    <select onchange="window.location.href='{% url 'admin_bookings' %}?delivery_type=' + encodeURIComponent(this.value)">
+        <option value="">All Delivery Types</option>
+        <option value="Self Pickup" {% if current_delivery_type == 'Self Pickup' %}selected{% endif %}>Self Pickup</option>
+        <option value="Doorstep" {% if current_delivery_type == 'Doorstep' %}selected{% endif %}>Doorstep</option>
+    </select>
+    <select onchange="window.location.href='{% url 'admin_bookings' %}?status=' + encodeURIComponent(this.value)">
+        <option value="">All Statuses</option>
+        <option value="Confirmed" {% if current_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+        <option value="Pickup" {% if current_status == 'Pickup' %}selected{% endif %}>Pickup (Self Pickup)</option>
+        <option value="Drop Off" {% if current_status == 'Drop Off' %}selected{% endif %}>Drop Off (Doorstep)</option>
+        <option value="Active" {% if current_status == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Completed" {% if current_status == 'Completed' %}selected{% endif %}>Completed</option>
+        <option value="Pending" {% if current_status == 'Pending' %}selected{% endif %}>Pending</option>
+        <option value="Cancelled" {% if current_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+    </select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="form-check-input select-all-check"></th>
+                    <th>Booking ID</th>
+                    <th>Customer</th>
+                    <th>Vehicle</th>
+                    <th>Delivery Type</th>
+                    <th>Pickup Point</th>
+                    <th>Drop Point</th>
+                    <th>Pickup Date</th>
+                    <th>Pickup Time</th>
+                    <th>Return Date</th>
+                    <th>Return Time</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td><a href="{% url 'admin_booking_detail' b.booking_id %}" class="cell-link">#{{ b.booking_id }}</a></td>
+                    <td class="cell-bold">{{ b.customer.full_name }}</td>
+                    <td>{{ b.vehicle.brand }} {{ b.vehicle.model }}</td>
+                    <td>
+                        {% if b.delivery_type == "Doorstep" %}
+                        <span class="badge" style="background:rgba(99,102,241,0.12);color:#4f46e5;font-weight:600;font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid rgba(99,102,241,0.25);">
+                            <i class="bi bi-house-door me-1"></i>Doorstep
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:rgba(14,165,233,0.12);color:#0284c7;font-weight:600;font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid rgba(14,165,233,0.25);">
+                            <i class="bi bi-geo-alt me-1"></i>Self Pickup
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ b.pickup_location.name|default:"Ranchi Station Hub" }}</td>
+                    <td>{{ b.drop_location.name|default:"Ranchi Station Hub" }}</td>
+                    <td>{{ b.start_datetime|date:"d M Y" }}</td>
+                    <td>{{ b.start_datetime|date:"h:i A" }}</td>
+                    <td>{{ b.end_datetime|date:"d M Y" }}</td>
+                    <td>{{ b.end_datetime|date:"h:i A" }}</td>
+                    <td class="cell-bold">₹{{ b.total_amount }}</td>
+                    <td>
+                        <span class="status-badge {% if b.payment_status == 'Paid' %}badge-paid{% elif b.payment_status == 'Pending' %}badge-pending{% else %}badge-danger{% endif %}">
+                            {{ b.payment_status }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge {% if b.status == 'Active' %}badge-active{% elif b.status == 'Confirmed' %}badge-confirmed{% elif b.status == 'Pickup' or b.status == 'Picked Up' %}badge-active{% elif b.status == 'Drop Off' or b.status == 'Dropped Off' %}badge-confirmed{% elif b.status == 'Completed' %}badge-completed{% elif b.status == 'Pending' %}badge-pending{% else %}badge-cancelled{% endif %}">
+                            {{ b.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 align-items-center">
+                            <a href="{% url 'admin_booking_detail' b.booking_id %}" class="btn-sm-action" title="View Details"><i class="bi bi-eye"></i></a>
+                            {% if b.delivery_type == "Self Pickup" and b.status != "Pickup" and b.status != "Completed" and b.status != "Cancelled" %}
+                            <button class="btn-sm-action text-info" title="Vendor/Admin: Change Status to Pickup" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="update status to Pickup" data-item="Booking #{{ b.booking_id }}" data-api-url="/api/bookings/{{ b.booking_id }}/status/" data-api-method="PATCH" data-api-payload='{"status":"Pickup"}'><i class="bi bi-box-arrow-in-right"></i></button>
+                            {% elif b.delivery_type == "Doorstep" and b.status != "Drop Off" and b.status != "Completed" and b.status != "Cancelled" %}
+                            <button class="btn-sm-action text-primary" title="Vendor/Admin: Change Status to Drop Off" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="update status to Drop Off" data-item="Booking #{{ b.booking_id }}" data-api-url="/api/bookings/{{ b.booking_id }}/status/" data-api-method="PATCH" data-api-payload='{"status":"Drop Off"}'><i class="bi bi-truck"></i></button>
+                            {% endif %}
+                            <button class="btn-sm-action text-primary" title="Edit" onclick="openEditModal('booking', '{{ b.booking_id }}', this)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action text-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-item="Booking #{{ b.booking_id }}" data-api-url="/api/bookings/{{ b.booking_id }}/" data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="15" class="text-center py-4 text-muted">No bookings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing {{ bookings|length }} entries</div>
+        <div class="page-links">
+            <div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div>
+            <div class="page-link-item active">1</div>
+            <div class="page-link-item"><i class="bi bi-chevron-right"></i></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+{% block title %}Ticket Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_support' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div><h1>Ticket #{{ ticket.ticket_id|default:"TK3010" }}</h1><p>{{ ticket.subject|default:"Booking confirmation not received" }}</p></div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-outline-custom btn-sm" onclick="openEditModal('support', '{{ ticket.ticket_id|default:'TK3010' }}', this)"><i class="bi bi-pencil me-1"></i> Edit Ticket</button>
+        <button class="btn btn-success btn-sm" data-action-btn="resolve-ticket"><i class="bi bi-check-lg me-1"></i> Mark Resolved</button>
+        <button class="btn-outline-custom btn-sm"><i class="bi bi-person-plus"></i> Reassign</button>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="detail-card">
+            <h5>Ticket Details</h5>
+            <div class="detail-row"><div class="detail-label">Ticket ID</div><div class="detail-value">#{{ ticket.ticket_id|default:"TK3010" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Customer</div><div class="detail-value cell-bold">{{ ticket.customer_name|default:"Amit Verma" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Booking ID</div><div class="detail-value cell-link">#{{ ticket.booking_id|default:"BK10247" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Subject</div><div class="detail-value">{{ ticket.subject|default:"Booking confirmation not received" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Category</div><div class="detail-value">{{ ticket.category|default:"Booking" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Priority</div><div class="detail-value"><span class="status-badge badge-danger">{{ ticket.priority|default:"High" }}</span></div></div>
+            <div class="detail-row"><div class="detail-label">Created</div><div class="detail-value">{{ ticket.created_at|date:"d M Y, h:i A"|default:"30 Sep 2026, 09:15 AM" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Assigned To</div><div class="detail-value">{{ ticket.assigned_agent|default:"Priya Staff" }}</div></div>
+            <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-pending">{{ ticket.status|default:"Open" }}</span></div></div>
+        </div>
+        <!-- <div class="detail-card">
+            <h5>Conversation</h5>
+            <div class="mb-3 p-3 rounded" style="background:var(--bg);">
+                <div class="d-flex justify-content-between mb-1"><strong style="font-size:13px;">Amit Verma <span class="badge bg-light text-dark">Customer</span></strong><small class="text-muted">30 Sep, 09:15 AM</small></div>
+                <p style="font-size:13px;margin:0;">I made a booking for Royal Enfield Classic 350 but haven't received any confirmation SMS or email. Booking was made at 9 AM today. Please check and confirm.</p>
+            </div>
+            <div class="mb-3 p-3 rounded" style="background:var(--accent-light);">
+                <div class="d-flex justify-content-between mb-1"><strong style="font-size:13px;">Priya Staff <span class="badge bg-primary">Support</span></strong><small class="text-muted">30 Sep, 09:30 AM</small></div>
+                <p style="font-size:13px;margin:0;">Hi Amit, Thank you for reaching out. I can see your booking #BK10247 is in pending status. The payment is still pending which is why the confirmation was not sent. Please complete the payment to receive confirmation.</p>
+            </div>
+            <form class="admin-form mt-3">
+                <textarea class="form-control" rows="3" placeholder="Type your reply..."></textarea>
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn-primary-custom btn-sm" data-action-btn="send-reply"><i class="bi bi-send"></i> Send Reply</button>
+                    <button type="button" class="btn-outline-custom btn-sm"><i class="bi bi-paperclip"></i> Attach</button>
+                </div>
+            </form>
+        </div> -->
+    </div>
+    <div class="col-lg-4">
+        <div class="detail-card">
+            <h5>Customer Info</h5>
+            <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">Amit Verma</div></div>
+            <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">+91 76543 21098</div></div>
+            <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">amit.verma@email.com</div></div>
+            <div class="detail-row"><div class="detail-label">Past Tickets</div><div class="detail-value">2</div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

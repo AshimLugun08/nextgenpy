@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+{% block title %}Rental Plans{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Rental Plans</h1><p>Manage rental pricing plans for all vehicle categories</p></div>
+    <div class="page-header-actions"><a href="{% url 'admin_rental_plan_form' %}" class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Add Plan</a></div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" class="d-flex w-100 gap-3 align-items-center flex-wrap" id="filterForm">
+        <div class="filter-search flex-grow-1" style="max-width: 300px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" placeholder="Search by plan name..." value="{{ request.GET.search }}">
+        </div>
+        <select name="duration" class="form-select" style="width: auto;" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Durations</option>
+            <option value="Hourly" {% if request.GET.duration == 'Hourly' %}selected{% endif %}>Hourly</option>
+            <option value="Daily" {% if request.GET.duration == 'Daily' %}selected{% endif %}>Daily</option>
+            <option value="Weekly" {% if request.GET.duration == 'Weekly' %}selected{% endif %}>Weekly</option>
+            <option value="Monthly" {% if request.GET.duration == 'Monthly' %}selected{% endif %}>Monthly</option>
+        </select>
+        <select name="status" class="form-select" style="width: auto;" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Status</option>
+            <option value="Active" {% if request.GET.status == 'Active' %}selected{% endif %}>Active</option>
+            <option value="Inactive" {% if request.GET.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary" style="display: none;">Filter</button>
+    </form>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Plan</th><th>Vehicle Category</th><th>Duration</th><th>Price (₹)</th><th>Security Deposit</th><th>Extra Charges</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for plan in plans %}
+                <tr>
+                    <td class="cell-bold">{{ plan.name }}</td>
+                    <td>{{ plan.vehicle_category.name|default:"General" }}</td>
+                    <td>{{ plan.duration_type }}</td>
+                    <td>₹{{ plan.base_price }}</td>
+                    <td>₹1000</td>
+                    <td>₹{{ plan.extra_km_charge|default:"5" }}/km</td>
+                    <td><span class="status-badge badge-{{ plan.is_active|yesno:'active,inactive' }}">{{ plan.is_active|yesno:"Active,Inactive" }}</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" onclick="openEditModal('rental-plan', '{{ plan.id }}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-url="/api/rental-plans/{{ plan.id }}/"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-4">No rental plans found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

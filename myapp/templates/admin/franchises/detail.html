@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+{% block title %}Franchise Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-2">
+    <a href="{% url 'admin_franchises' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+    <div><h1>Ranchi Main Franchise</h1><p>Franchise overview and management</p></div>
+</div>
+
+<div class="admin-tabs" style="padding:0;">
+    <div class="tab-item active" data-tab="fr-overview">Overview</div>
+    <div class="tab-item" data-tab="fr-vehicles">Vehicles</div>
+    <div class="tab-item" data-tab="fr-bookings">Bookings</div>
+    <div class="tab-item" data-tab="fr-revenue">Revenue</div>
+    <div class="tab-item" data-tab="fr-maintenance">Maintenance</div>
+</div>
+
+<div class="tab-pane active" id="fr-overview">
+    <div class="row g-3 mt-2 mb-4">
+        <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Vehicles</div><div class="card-value" style="font-size:22px;">145</div></div></div>
+        <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Active Bookings</div><div class="card-value" style="font-size:22px;">48</div></div></div>
+        <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Monthly Revenue</div><div class="card-value" style="font-size:22px;">₹12,45,000</div></div></div>
+        <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Customer Rating</div><div class="card-value" style="font-size:22px;">4.6 <i class="bi bi-star-fill" style="font-size:14px;color:var(--warning);"></i></div></div></div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="detail-card">
+                <h5>Franchise Details</h5>
+                <div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">Ranchi Main</div></div>
+                <div class="detail-row"><div class="detail-label">Owner</div><div class="detail-value cell-bold">Rajesh Kumar</div></div>
+                <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">+91 99876 54321</div></div>
+                <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">rajesh@bikerentals.com</div></div>
+                <div class="detail-row"><div class="detail-label">Location</div><div class="detail-value">Ranchi, Jharkhand</div></div>
+                <div class="detail-row"><div class="detail-label">Since</div><div class="detail-value">01 Jan 2024</div></div>
+                <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-active">Active</span></div></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="detail-card">
+                <h5>Pickup Points</h5>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>Location</th><th>Vehicles</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>Ranchi Station Hub</td><td>42</td><td><span class="status-badge badge-active">Active</span></td></tr>
+                            <tr><td>Lalpur Chowk</td><td>28</td><td><span class="status-badge badge-active">Active</span></td></tr>
+                            <tr><td>Main Road Hub</td><td>35</td><td><span class="status-badge badge-active">Active</span></td></tr>
+                            <tr><td>Doranda</td><td>22</td><td><span class="status-badge badge-active">Active</span></td></tr>
+                            <tr><td>Morabadi</td><td>18</td><td><span class="status-badge badge-active">Active</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-pane" id="fr-vehicles" style="display:none;">
+    <div class="mt-3"><p style="font-size:13px;color:var(--text-secondary);padding:20px;">Vehicles managed by this franchise would be listed here with filtering by location.</p></div>
+</div>
+<div class="tab-pane" id="fr-bookings" style="display:none;">
+    <div class="mt-3"><p style="font-size:13px;color:var(--text-secondary);padding:20px;">Bookings associated with this franchise would be listed here.</p></div>
+</div>
+<div class="tab-pane" id="fr-revenue" style="display:none;">
+    <div class="mt-3"><p style="font-size:13px;color:var(--text-secondary);padding:20px;">Revenue reports for this franchise would be displayed here.</p></div>
+</div>
+<div class="tab-pane" id="fr-maintenance" style="display:none;">
+    <div class="mt-3"><p style="font-size:13px;color:var(--text-secondary);padding:20px;">Maintenance records for franchise vehicles would be listed here.</p></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+        document.querySelectorAll('.tab-pane').forEach(function(p){ p.style.display='none'; p.classList.remove('active'); });
+        var target = document.getElementById(this.getAttribute('data-tab'));
+        if(target){ target.style.display='block'; target.classList.add('active'); }
+    });
+});
+</script>
+{% endblock %}

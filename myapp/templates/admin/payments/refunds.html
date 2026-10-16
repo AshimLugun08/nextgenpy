@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+{% block title %}Refunds{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Refunds</h1><p>Manage refund requests and processing</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">65</span></div>
+    <div class="tab-item">Requested <span class="tab-count">8</span></div>
+    <div class="tab-item">Processing <span class="tab-count">5</span></div>
+    <div class="tab-item">Completed <span class="tab-count">48</span></div>
+    <div class="tab-item">Rejected <span class="tab-count">4</span></div>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Refund ID</th><th>Transaction ID</th><th>Booking ID</th><th>Customer</th><th>Refund Amount</th><th>Reason</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-link">#RF3001</td><td>#TXN50009</td><td>#BK10250</td><td class="cell-bold">Sneha Patel</td><td class="cell-bold">₹1,500</td><td>Booking cancelled by customer</td><td>28 Sep 2026</td><td><span class="status-badge badge-completed">Completed</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+                <tr><td class="cell-link">#RF3002</td><td>#TXN49980</td><td>#BK10210</td><td class="cell-bold">Ravi Shankar</td><td class="cell-bold">₹2,000</td><td>Security deposit refund</td><td>29 Sep 2026</td><td><span class="status-badge badge-processing">Processing</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+                <tr><td class="cell-link">#RF3003</td><td>#TXN49975</td><td>#BK10205</td><td class="cell-bold">Kavita Devi</td><td class="cell-bold">₹800</td><td>Overcharge adjustment</td><td>30 Sep 2026</td><td><span class="status-badge badge-pending">Requested</span></td><td><div class="d-flex gap-1"><button class="btn-sm-action"><i class="bi bi-eye"></i></button><button class="btn-sm-action" style="color:var(--success);" data-action-btn="approve-refund"><i class="bi bi-check"></i></button><button class="btn-sm-action danger" data-action-btn="reject-refund"><i class="bi bi-x"></i></button></div></td></tr>
+                <tr><td class="cell-link">#RF2998</td><td>#TXN49960</td><td>#BK10190</td><td class="cell-bold">Anita Kumari</td><td class="cell-bold">₹450</td><td>Vehicle not available</td><td>25 Sep 2026</td><td><span class="status-badge badge-rejected">Rejected</span></td><td><button class="btn-sm-action"><i class="bi bi-eye"></i></button></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% block title %}Maintenance Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-2">
+    <a href="{% url 'admin_maintenance' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+    <div><h1>Maintenance - Bajaj Pulsar 150</h1><p>JH01 GH 3456</p></div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Maintenance Details</h5>
+            <div class="detail-row"><div class="detail-label">Vehicle</div><div class="detail-value cell-bold">Bajaj Pulsar 150</div></div>
+            <div class="detail-row"><div class="detail-label">Vehicle Number</div><div class="detail-value">JH01 GH 3456</div></div>
+            <div class="detail-row"><div class="detail-label">Type</div><div class="detail-value">Repair</div></div>
+            <div class="detail-row"><div class="detail-label">Issue</div><div class="detail-value">Engine overheating issue</div></div>
+            <div class="detail-row"><div class="detail-label">Description</div><div class="detail-value">Engine overheating after 30 minutes of continuous riding. Coolant level low, radiator needs inspection.</div></div>
+            <div class="detail-row"><div class="detail-label">Start Date</div><div class="detail-value">28 Sep 2026</div></div>
+            <div class="detail-row"><div class="detail-label">Expected Completion</div><div class="detail-value">01 Oct 2026</div></div>
+            <div class="detail-row"><div class="detail-label">Estimated Cost</div><div class="detail-value cell-bold">₹2,500</div></div>
+            <div class="detail-row"><div class="detail-label">Assigned Mechanic</div><div class="detail-value">Suresh Kumar</div></div>
+            <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-processing">In Progress</span></div></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Work Log</h5>
+            <div class="mb-3 p-3 rounded" style="background:var(--bg);font-size:13px;">
+                <div class="d-flex justify-content-between mb-1"><strong>Suresh Kumar</strong><small class="text-muted">29 Sep, 10:30 AM</small></div>
+                <p class="mb-0">Radiator cleaned and coolant replaced. Testing engine heat cycle.</p>
+            </div>
+            <div class="mb-3 p-3 rounded" style="background:var(--bg);font-size:13px;">
+                <div class="d-flex justify-content-between mb-1"><strong>Suresh Kumar</strong><small class="text-muted">28 Sep, 04:00 PM</small></div>
+                <p class="mb-0">Diagnosed issue. Coolant leak found near radiator hose. Replacement part ordered.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

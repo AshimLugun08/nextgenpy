@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+{% block title %}Delivery Zones{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Delivery Zones</h1><p>Manage doorstep delivery areas and charges</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addZoneModal"><i class="bi bi-plus-lg"></i> Add Zone</button></div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" class="d-flex w-100 gap-3 align-items-center flex-wrap" id="filterForm">
+        <div class="filter-search flex-grow-1" style="max-width: 300px;">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" placeholder="Search zone name..." value="{{ request.GET.search }}">
+        </div>
+        <select name="status" class="form-select" style="width: auto;" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Status</option>
+            <option value="Active" {% if request.GET.status == 'Active' %}selected{% endif %}>Active</option>
+            <option value="Inactive" {% if request.GET.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary" style="display: none;">Filter</button>
+    </form>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Zone Name</th><th>Location</th><th>Radius (km)</th><th>Delivery Charge (₹)</th><th>Min. Booking (₹)</th><th>Est. Time</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for zone in zones %}
+                <tr>
+                    <td class="cell-bold">{{ zone.name }}</td>
+                    <td>{{ zone.location.name|default:"-" }}</td>
+                    <td>{{ zone.radius_km }}</td>
+                    <td>₹{{ zone.delivery_charge }}</td>
+                    <td>{{ zone.min_booking_amount }}</td>
+                    <td>{{ zone.estimated_delivery_time }}</td>
+                    <td>
+                        {% if zone.is_active %}
+                            <span class="status-badge badge-active">Active</span>
+                        {% else %}
+                            <span class="status-badge badge-inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn-sm-action" onclick="openEditModal('delivery-zone', '{{ zone.id }}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action danger" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-url="/api/delivery-zones/{{ zone.id }}/"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+</tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addZoneModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Delivery Zone</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="addZoneForm" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3"><label>Zone Name</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="mb-3"><label>Radius (km)</label><input type="number" step="0.1" name="radius_km" class="form-control"></div>
+                    <div class="mb-3"><label>Delivery Charge</label><input type="number" name="delivery_charge" class="form-control"></div>
+                    <div class="mb-3"><label>Min Booking Amount</label><input type="number" name="min_booking_amount" class="form-control"></div>
+                    <div class="mb-3"><label>Est. Delivery Time</label><input type="text" name="estimated_delivery_time" class="form-control" placeholder="e.g. 30-45 mins"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="addZoneForm" class="btn-primary-custom">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

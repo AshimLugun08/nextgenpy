@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block title %}Roles & Permissions{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Roles & Permissions</h1><p>Manage admin roles and access control</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Add Role</button></div>
+</div>
+<div class="row g-3">
+    {% with roles="Super Admin,Franchise Owner,Franchise Manager,Operations Staff,Finance Staff,Support Staff,Maintenance Staff" %}
+    {% for role in roles.split %}
+    <div class="col-lg-4 col-md-6">
+        <div class="panel-card">
+            <div class="panel-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 style="margin:0;font-size:15px;">{{ role }}</h5>
+                    {% if role == "Super" %}<span class="status-badge badge-danger">System</span>{% else %}<span class="status-badge badge-active">Active</span>{% endif %}
+                </div>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+                    {% if role == "Super" %}Full access to all modules and data across all franchises.
+                    {% elif role == "Franchise" %}Access limited to assigned franchise data only.
+                    {% elif role == "Operations" %}Manage bookings, pickups, and vehicle operations.
+                    {% elif role == "Finance" %}Access to payments, refunds, invoices, and financial reports.
+                    {% elif role == "Support" %}Handle customer support tickets and communications.
+                    {% elif role == "Maintenance" %}Manage vehicle maintenance, inspections, and service history.
+                    {% else %}Custom role with configurable permissions.{% endif %}
+                </p>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    {% if role == "Super" %}2 users{% elif role == "Franchise" %}4 users{% elif role == "Operations" %}3 users{% elif role == "Finance" %}2 users{% elif role == "Support" %}3 users{% elif role == "Maintenance" %}2 users{% else %}1 user{% endif %}
+                </div>
+            </div>
+            <div class="panel-card-footer d-flex justify-content-end gap-2">
+                <button class="btn-sm-action"><i class="bi bi-pencil"></i></button>
+                {% if role != "Super" %}<button class="btn-sm-action danger"><i class="bi bi-trash"></i></button>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endwith %}
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Payments</h1><p>Track all payment transactions</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Total Revenue</div><div class="card-value" style="font-size:22px;">₹45,28,500</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Today's Collection</div><div class="card-value" style="font-size:22px;color:var(--success);">₹1,84,500</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Pending</div><div class="card-value" style="font-size:22px;color:var(--warning);">₹42,800</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="padding:16px;"><div class="card-label">Refunded</div><div class="card-value" style="font-size:22px;color:var(--danger);">₹18,200</div></div></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">3,842</span></div>
+    <div class="tab-item">Successful <span class="tab-count">3,650</span></div>
+    <div class="tab-item">Pending <span class="tab-count">82</span></div>
+    <div class="tab-item">Failed <span class="tab-count">45</span></div>
+    <div class="tab-item">Refunded <span class="tab-count">65</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search by transaction ID, booking or customer..."></div>
+    <select><option value="">Payment Method</option><option>UPI</option><option>Card</option><option>Net Banking</option><option>Wallet</option></select>
+    <input type="date" title="From"><input type="date" title="To">
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Transaction ID</th><th>Booking ID</th><th>Customer</th><th>Amount</th><th>Method</th><th>Security Deposit</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-link">#TXN50012</td><td class="cell-link">#BK10245</td><td class="cell-bold">Rahul Kumar</td><td class="cell-bold">₹2,885</td><td>UPI</td><td>₹2,000</td><td>29 Sep 2026</td><td><span class="status-badge badge-paid">Success</span></td><td><a href="{% url 'admin_payment_detail' 'TXN50012' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></td></tr>
+                <tr><td class="cell-link">#TXN50011</td><td class="cell-link">#BK10246</td><td class="cell-bold">Priya Sharma</td><td class="cell-bold">₹1,450</td><td>Card</td><td>₹1,000</td><td>29 Sep 2026</td><td><span class="status-badge badge-paid">Success</span></td><td><a href="{% url 'admin_payment_detail' 'TXN50011' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></td></tr>
+                <tr><td class="cell-link">#TXN50010</td><td class="cell-link">#BK10247</td><td class="cell-bold">Amit Verma</td><td class="cell-bold">₹5,500</td><td>UPI</td><td>₹3,000</td><td>29 Sep 2026</td><td><span class="status-badge badge-pending">Pending</span></td><td><a href="{% url 'admin_payment_detail' 'TXN50010' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></td></tr>
+                <tr><td class="cell-link">#TXN50009</td><td class="cell-link">#BK10250</td><td class="cell-bold">Sneha Patel</td><td class="cell-bold">₹1,500</td><td>Net Banking</td><td>₹2,500</td><td>28 Sep 2026</td><td><span class="status-badge badge-danger">Refunded</span></td><td><a href="{% url 'admin_payment_detail' 'TXN50009' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></td></tr>
+                <tr><td class="cell-link">#TXN50008</td><td class="cell-link">#BK10249</td><td class="cell-bold">Vikash Gupta</td><td class="cell-bold">₹2,600</td><td>Wallet</td><td>₹2,000</td><td>28 Sep 2026</td><td><span class="status-badge badge-paid">Success</span></td><td><a href="{% url 'admin_payment_detail' 'TXN50008' %}" class="btn-sm-action"><i class="bi bi-eye"></i></a></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing 1 to 5 of 3,842 entries</div>
+        <div class="page-links"><div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div><div class="page-link-item active">1</div><div class="page-link-item">2</div><div class="page-link-item">3</div><div class="page-link-item"><i class="bi bi-chevron-right"></i></div></div>
+    </div>
+</div>
+{% endblock %}

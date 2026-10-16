@@ -1,0 +1,73 @@
+{% extends "admin/base.html" %}
+{% block title %}Maintenance{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Maintenance</h1><p>Track and manage vehicle maintenance schedules</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item {% if not current_status or current_status == 'all' %}active{% endif %}" data-filter="all">All <span class="tab-count">{{ stats.total|default:records|length }}</span></div>
+    <div class="tab-item {% if current_status == 'Scheduled' %}active{% endif %}" data-filter="Scheduled">Scheduled <span class="tab-count">{{ stats.scheduled|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'In Progress' %}active{% endif %}" data-filter="In Progress">In Progress <span class="tab-count">{{ stats.in_progress|default:0 }}</span></div>
+    <div class="tab-item {% if current_status == 'Completed' %}active{% endif %}" data-filter="Completed">Completed <span class="tab-count">{{ stats.completed|default:0 }}</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search vehicle number, type, service center..."></div>
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option value="Scheduled" {% if current_status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+        <option value="In Progress" {% if current_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+        <option value="Completed" {% if current_status == 'Completed' %}selected{% endif %}>Completed</option>
+    </select>
+    <select name="maintenance_type">
+        <option value="">Maintenance Type</option>
+        <option value="Routine Service" {% if current_type == 'Routine Service' %}selected{% endif %}>Routine Service</option>
+        <option value="Repair" {% if current_type == 'Repair' %}selected{% endif %}>Repair</option>
+        <option value="Inspection" {% if current_type == 'Inspection' %}selected{% endif %}>Inspection</option>
+        <option value="Tyre Replacement" {% if current_type == 'Tyre Replacement' %}selected{% endif %}>Tyre Replacement</option>
+        <option value="Battery Maintenance" {% if current_type == 'Battery Maintenance' %}selected{% endif %}>Battery Maintenance</option>
+        <option value="Accident Repair" {% if current_type == 'Accident Repair' %}selected{% endif %}>Accident Repair</option>
+    </select>
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Vehicle</th><th>Vehicle Number</th><th>Maintenance Type</th><th>Service Center</th><th>Scheduled Date</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for m in records %}
+                <tr>
+                    <td class="cell-bold">{{ m.vehicle.brand }} {{ m.vehicle.model }}</td>
+                    <td>{{ m.vehicle.vehicle_number }}</td>
+                    <td>{{ m.maintenance_type }}</td>
+                    <td>{{ m.service_center }}</td>
+                    <td>{{ m.scheduled_date|date:"d M Y" }}</td>
+                    <td class="cell-bold">₹{{ m.cost }}</td>
+                    <td>
+                        <span class="status-badge {% if m.status == 'Completed' %}badge-completed{% elif m.status == 'In Progress' %}badge-processing{% elif m.status == 'Scheduled' %}badge-scheduled{% else %}badge-inactive{% endif %}">
+                            {{ m.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'admin_maintenance_detail' m.record_id %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a>
+                            <button class="btn-sm-action text-primary" title="Edit" onclick="openEditModal('maintenance', '{{ m.record_id }}', this)"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-action text-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="delete" data-item="Maintenance #{{ m.record_id }}" data-api-url="/api/maintenance/{{ m.record_id }}/" data-api-method="DELETE"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-4 text-muted">No maintenance records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing {{ records|length }} entries</div>
+        <div class="page-links"><div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div><div class="page-link-item active">1</div><div class="page-link-item"><i class="bi bi-chevron-right"></i></div></div>
+    </div>
+</div>
+{% endblock %}

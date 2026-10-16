@@ -1,0 +1,32 @@
+{% extends "admin/base.html" %}
+{% block title %}Wallet{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Wallet Transactions</h1><p>View all customer wallet transactions</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search by customer or transaction ID..."></div>
+    <select><option value="">Type</option><option>Credit</option><option>Debit</option><option>Refund</option><option>Bonus</option></select>
+    <input type="date"><input type="date">
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Transaction ID</th><th>Customer</th><th>Type</th><th>Amount</th><th>Balance</th><th>Description</th><th>Date</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-link">#W5001</td><td class="cell-bold">Rahul Kumar</td><td><span class="status-badge badge-active">Credit</span></td><td style="color:var(--success);">+₹500</td><td>₹1,200</td><td>Referral bonus - referred Amit Verma</td><td>25 Sep 2026</td></tr>
+                <tr><td class="cell-link">#W5000</td><td class="cell-bold">Rahul Kumar</td><td><span class="status-badge badge-cancelled">Debit</span></td><td style="color:var(--danger);">-₹300</td><td>₹700</td><td>Booking #BK10198 partial payment</td><td>22 Sep 2026</td></tr>
+                <tr><td class="cell-link">#W4999</td><td class="cell-bold">Rahul Kumar</td><td><span class="status-badge badge-info">Refund</span></td><td style="color:var(--success);">+₹1,000</td><td>₹1,000</td><td>Refund - Booking #BK10120</td><td>18 Sep 2026</td></tr>
+                <tr><td class="cell-link">#W4998</td><td class="cell-bold">Priya Sharma</td><td><span class="status-badge badge-purple">Bonus</span></td><td style="color:var(--success);">+₹200</td><td>₹600</td><td>First booking bonus</td><td>22 Feb 2026</td></tr>
+                <tr><td class="cell-link">#W4997</td><td class="cell-bold">Vikash Gupta</td><td><span class="status-badge badge-active">Credit</span></td><td style="color:var(--success);">+₹750</td><td>₹2,400</td><td>Cashback on monthly subscription</td><td>15 Sep 2026</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing 1 to 5 of 856 entries</div>
+        <div class="page-links"><div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div><div class="page-link-item active">1</div><div class="page-link-item">2</div><div class="page-link-item">3</div><div class="page-link-item"><i class="bi bi-chevron-right"></i></div></div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Service History{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Service History</h1><p>Complete service records for all vehicles</p></div>
+    <div class="page-header-actions"><button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button></div>
+</div>
+<div class="filter-bar">
+    <div class="filter-search"><i class="bi bi-search"></i><input type="text" placeholder="Search by vehicle..."></div>
+    <select><option value="">Service Type</option><option>Oil Change</option><option>Tyre Replacement</option><option>General Service</option><option>Repair</option></select>
+</div>
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Vehicle</th><th>Service Type</th><th>Service Date</th><th>Mileage</th><th>Cost</th><th>Service Provider</th><th>Remarks</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-bold">Honda Activa 6G (JH01 AB 1234)</td><td>Oil Change</td><td>20 Sep 2026</td><td>12,450 km</td><td>₹850</td><td>Authorized Honda Service</td><td>Oil change + air filter clean</td></tr>
+                <tr><td class="cell-bold">Honda Activa 6G (JH01 AB 1234)</td><td>General Service</td><td>10 Jun 2026</td><td>10,200 km</td><td>₹1,500</td><td>Authorized Honda Service</td><td>Full service with brake check</td></tr>
+                <tr><td class="cell-bold">Royal Enfield Classic 350 (JH01 EF 9012)</td><td>Oil Change</td><td>25 Sep 2026</td><td>8,900 km</td><td>₹1,200</td><td>RE Service Center</td><td>Synthetic oil used</td></tr>
+                <tr><td class="cell-bold">TVS Jupiter (JH01 OP 7890)</td><td>Tyre Replacement</td><td>27 Sep 2026</td><td>15,600 km</td><td>₹1,800</td><td>Local Workshop</td><td>Front and rear tyres replaced</td></tr>
+                <tr><td class="cell-bold">Bajaj Pulsar 150 (JH01 GH 3456)</td><td>Repair</td><td>28 Sep 2026</td><td>18,200 km</td><td>₹2,500</td><td>Bajaj Service Center</td><td>Radiator hose and coolant replaced</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

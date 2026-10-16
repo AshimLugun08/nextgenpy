@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Subscription Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_subscriptions' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div><h1>Subscription #SUB2001</h1><p>Monthly subscription details</p></div>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn btn-success btn-sm" data-action-btn="renew"><i class="bi bi-arrow-repeat me-1"></i> Renew</button>
+        <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="cancel" data-item="#SUB2001"><i class="bi bi-x me-1"></i> Cancel</button>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Subscription Details</h5>
+            <div class="detail-row"><div class="detail-label">Subscription ID</div><div class="detail-value">#SUB2001</div></div>
+            <div class="detail-row"><div class="detail-label">Customer</div><div class="detail-value cell-bold">Rahul Kumar</div></div>
+            <div class="detail-row"><div class="detail-label">Vehicle</div><div class="detail-value">Honda Activa 6G (JH01 AB 1234)</div></div>
+            <div class="detail-row"><div class="detail-label">Plan</div><div class="detail-value">Monthly</div></div>
+            <div class="detail-row"><div class="detail-label">Start Date</div><div class="detail-value">01 Sep 2026</div></div>
+            <div class="detail-row"><div class="detail-label">End Date</div><div class="detail-value">30 Sep 2026</div></div>
+            <div class="detail-row"><div class="detail-label">Amount</div><div class="detail-value cell-bold">₹7,500</div></div>
+            <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-active">Active</span></div></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Payment History</h5>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr><td>01 Sep 2026</td><td>₹7,500</td><td>UPI</td><td><span class="status-badge badge-paid">Paid</span></td></tr>
+                        <tr><td>01 Aug 2026</td><td>₹7,500</td><td>UPI</td><td><span class="status-badge badge-paid">Paid</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

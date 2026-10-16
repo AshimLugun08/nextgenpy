@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div><h1>Notifications</h1><p>Send and manage notifications to customers</p></div>
+    <div class="page-header-actions"><button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#composeNotifModal"><i class="bi bi-plus-lg"></i> Send Notification</button></div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">1,245</span></div>
+    <div class="tab-item">Templates <span class="tab-count">8</span></div>
+    <div class="tab-item">Scheduled <span class="tab-count">3</span></div>
+    <div class="tab-item">History <span class="tab-count">1,234</span></div>
+</div>
+
+<!-- Notification Composer -->
+<div class="notif-composer mb-4">
+    <h5 style="font-size:15px;font-weight:600;margin-bottom:16px;"><i class="bi bi-send me-2 text-accent"></i>Compose Notification</h5>
+    <form class="admin-form">
+        <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Notification Type *</label><select class="form-select"><option>Booking Confirmation</option><option>Payment Confirmation</option><option>Pickup Reminder</option><option>Return Reminder</option><option>Subscription Reminder</option><option>Offers</option><option>Announcements</option></select></div>
+            <div class="col-md-6"><label class="form-label">Send To *</label><select class="form-select"><option>All Customers</option><option>Active Customers</option><option>Specific Customer</option><option>Subscribers Only</option></select></div>
+            <div class="col-md-12"><label class="form-label">Title *</label><input type="text" class="form-control" placeholder="Notification title..."></div>
+            <div class="col-md-12"><label class="form-label">Message *</label><textarea class="form-control" rows="4" placeholder="Type your notification message..."></textarea></div>
+            <div class="col-md-4"><label class="form-label">Channel</label>
+                <div class="d-flex gap-3 mt-1">
+                    <div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label" style="font-size:13px;">Push</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label" style="font-size:13px;">SMS</label></div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label" style="font-size:13px;">Email</label></div>
+                </div>
+            </div>
+            <div class="col-md-4"><label class="form-label">Schedule</label><input type="datetime-local" class="form-control"></div>
+            <div class="col-12"><button type="button" class="btn-primary-custom" data-action-btn="send-notification"><i class="bi bi-send"></i> Send Now</button></div>
+        </div>
+    </form>
+</div>
+
+<!-- Notification History -->
+<div class="panel-card">
+    <div class="panel-card-header"><h5>Notification History</h5></div>
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead><tr><th>Title</th><th>Type</th><th>Recipients</th><th>Channel</th><th>Sent At</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td class="cell-bold">Booking Confirmed - #BK10245</td><td>Booking Confirmation</td><td>Rahul Kumar</td><td><span class="badge bg-primary">Push</span> <span class="badge bg-info">SMS</span></td><td>30 Sep 2026, 08:48 PM</td><td><span class="status-badge badge-completed">Delivered</span></td></tr>
+                <tr><td class="cell-bold">Weekend Special! 20% Off</td><td>Offers</td><td>All Customers (12,548)</td><td><span class="badge bg-primary">Push</span></td><td>28 Sep 2026, 10:00 AM</td><td><span class="status-badge badge-completed">Delivered</span></td></tr>
+                <tr><td class="cell-bold">Return Reminder - #BK10230</td><td>Return Reminder</td><td>Deepak Yadav</td><td><span class="badge bg-primary">Push</span> <span class="badge bg-info">SMS</span></td><td>27 Sep 2026, 06:00 PM</td><td><span class="status-badge badge-completed">Delivered</span></td></tr>
+                <tr><td class="cell-bold">Subscription Renewal Reminder</td><td>Subscription Reminder</td><td>18 Subscribers</td><td><span class="badge bg-primary">Push</span> <span class="badge bg-info">SMS</span> <span class="badge bg-secondary">Email</span></td><td>25 Sep 2026, 09:00 AM</td><td><span class="status-badge badge-completed">Delivered</span></td></tr>
+                <tr><td class="cell-bold">Festive Season Discount!</td><td>Announcements</td><td>All Customers</td><td><span class="badge bg-primary">Push</span></td><td>01 Oct 2026, 10:00 AM</td><td><span class="status-badge badge-scheduled">Scheduled</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block title %}Payment Detail{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-2">
+    <a href="{% url 'admin_payments' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+    <div><h1>Transaction #TXN50012</h1><p>Payment transaction details</p></div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Transaction Details</h5>
+            <div class="detail-row"><div class="detail-label">Transaction ID</div><div class="detail-value">#TXN50012</div></div>
+            <div class="detail-row"><div class="detail-label">Booking ID</div><div class="detail-value cell-link">#BK10245</div></div>
+            <div class="detail-row"><div class="detail-label">Customer</div><div class="detail-value cell-bold">Rahul Kumar</div></div>
+            <div class="detail-row"><div class="detail-label">Amount</div><div class="detail-value cell-bold">₹2,885</div></div>
+            <div class="detail-row"><div class="detail-label">Payment Method</div><div class="detail-value">UPI (PhonePe)</div></div>
+            <div class="detail-row"><div class="detail-label">Security Deposit</div><div class="detail-value">₹2,000</div></div>
+            <div class="detail-row"><div class="detail-label">Date</div><div class="detail-value">29 Sep 2026, 08:47 PM</div></div>
+            <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value"><span class="status-badge badge-paid">Success</span></div></div>
+            <div class="detail-row"><div class="detail-label">Gateway Ref</div><div class="detail-value">pay_XXXXXXXXXXXXXXX</div></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="detail-card">
+            <h5>Amount Breakdown</h5>
+            <div class="detail-row"><div class="detail-label">Rental Charge</div><div class="detail-value">₹800</div></div>
+            <div class="detail-row"><div class="detail-label">Delivery Charge</div><div class="detail-value">₹0</div></div>
+            <div class="detail-row"><div class="detail-label">Discount</div><div class="detail-value" style="color:var(--success);">- ₹50</div></div>
+            <div class="detail-row"><div class="detail-label">GST (18%)</div><div class="detail-value">₹135</div></div>
+            <div class="detail-row"><div class="detail-label">Security Deposit</div><div class="detail-value">₹2,000</div></div>
+            <div class="detail-row" style="border-top:2px solid var(--text);padding-top:12px;margin-top:8px;"><div class="detail-label" style="font-weight:700;">Total Paid</div><div class="detail-value" style="font-weight:700;font-size:16px;">₹2,885</div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

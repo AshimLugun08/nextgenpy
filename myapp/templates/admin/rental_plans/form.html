@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Add Rental Plan{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_rental_plans' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div><h1>Add Rental Plan</h1><p>Create a new rental pricing plan</p></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form class="admin-form" method="POST" action="{% url 'admin_rental_plan_form' %}">
+            {% csrf_token %}
+            <div class="detail-card">
+                <h5>Plan Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Plan Name *</label><input type="text" class="form-control" name="name" placeholder="e.g. Daily - Scooter" required></div>
+                    <div class="col-md-6"><label class="form-label">Vehicle Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">-- No Category (General) --</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6"><label class="form-label">Duration Type *</label><select class="form-select" name="duration_type" required><option>Hourly</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
+                    <div class="col-md-6"><label class="form-label">Price (₹) *</label><input type="number" class="form-control" name="base_price" placeholder="Plan price" required></div>
+                    <div class="col-md-6"><label class="form-label">Security Deposit (₹) *</label><input type="number" class="form-control" placeholder="Security deposit amount"></div>
+                    <div class="col-md-6"><label class="form-label">Delivery Charge (₹)</label><input type="number" class="form-control" placeholder="Delivery charge"></div>
+                    <div class="col-md-6"><label class="form-label">Late Return Charge (₹/hr)</label><input type="number" class="form-control" placeholder="Late return charge per hour"></div>
+                    <div class="col-md-6"><label class="form-label">Status *</label><select class="form-select"><option>Active</option><option>Inactive</option></select></div>
+                    <div class="col-12"><label class="form-label">Description / Features</label><textarea class="form-control" name="features" rows="3" placeholder="Brief description of the plan..."></textarea></div>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn-primary-custom"><i class="bi bi-check-lg"></i> Save Plan</button>
+                <a href="{% url 'admin_rental_plans' %}" class="btn-outline-custom">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

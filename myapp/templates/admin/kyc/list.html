@@ -1,0 +1,90 @@
+{% extends "admin/base.html" %}
+{% block title %}KYC Management{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h1>KYC Management</h1>
+        <p>Verify and manage customer KYC documents</p>
+    </div>
+    <div class="page-header-actions">
+        <button class="btn-outline-custom" data-export="csv"><i class="bi bi-download"></i> Export</button>
+        <button class="btn-primary-custom" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+    </div>
+</div>
+
+<div class="admin-tabs">
+    <div class="tab-item active">All <span class="tab-count">{{ stats.total|default:kyc_records|length }}</span></div>
+    <div class="tab-item">Pending <span class="tab-count">{{ stats.pending|default:0 }}</span></div>
+    <div class="tab-item">Verified <span class="tab-count">{{ stats.verified|default:0 }}</span></div>
+    <div class="tab-item">Rejected <span class="tab-count">{{ stats.rejected|default:0 }}</span></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search by customer name, phone or document number...">
+    </div>
+    <select><option value="">Document Type</option><option>Aadhaar Card</option><option>PAN Card</option><option>Driving Licence</option></select>
+    <select><option value="">All Statuses</option><option>Pending</option><option>Verified</option><option>Rejected</option></select>
+    <input type="date" title="From Date">
+    <input type="date" title="To Date">
+</div>
+
+<div class="panel-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>KYC ID</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Document Type</th>
+                    <th>Document Number</th>
+                    <th>Submitted Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kyc_records %}
+                <tr>
+                    <td class="cell-link"><a href="{% url 'admin_kyc_detail' k.kyc_id %}" class="cell-link">#{{ k.kyc_id }}</a></td>
+                    <td class="cell-bold">{{ k.customer.full_name }}</td>
+                    <td>{{ k.customer.phone }}</td>
+                    <td>{{ k.document_type }}</td>
+                    <td>{{ k.aadhaar_number|default:k.licence_number|default:"Verified Doc" }}</td>
+                    <td>{{ k.submitted_at|date:"d M Y" }}</td>
+                    <td>
+                        <span class="status-badge {% if k.status == 'verified' %}badge-verified{% elif k.status == 'pending' %}badge-pending{% else %}badge-rejected{% endif %}">
+                            {{ k.status|capfirst }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'admin_kyc_detail' k.kyc_id %}" class="btn-sm-action" title="View"><i class="bi bi-eye"></i></a>
+                            {% if k.status == 'pending' %}
+                            <button class="btn-sm-action text-success" title="Approve" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="approve" data-item="KYC for {{ k.customer.full_name }}" data-api-url="/api/kyc/{{ k.kyc_id }}/" data-api-method="POST" data-api-payload='{"action":"approve"}'><i class="bi bi-check-lg"></i></button>
+                            <button class="btn-sm-action text-danger" title="Reject" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action="reject" data-item="KYC for {{ k.customer.full_name }}" data-api-url="/api/kyc/{{ k.kyc_id }}/" data-api-method="POST" data-api-payload='{"action":"reject","reason":"Document mismatch"}'><i class="bi bi-x-lg"></i></button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">No KYC records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-pagination">
+        <div class="page-info">Showing {{ kyc_records|length }} entries</div>
+        <div class="page-links">
+            <div class="page-link-item disabled"><i class="bi bi-chevron-left"></i></div>
+            <div class="page-link-item active">1</div>
+            <div class="page-link-item"><i class="bi bi-chevron-right"></i></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,316 @@
+{% extends "admin/base.html" %}
+{% block title %}Booking #{{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'admin_bookings' %}" class="btn-sm-action"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="mb-0">Booking #{{ booking.booking_id }}</h1>
+                <span class="status-badge {% if booking.status == 'Active' or booking.status == 'Pickup' %}badge-active{% elif booking.status == 'Confirmed' or booking.status == 'Drop Off' %}badge-confirmed{% elif booking.status == 'Completed' %}badge-completed{% else %}badge-cancelled{% endif %}" id="headerStatusBadge">
+                    {{ booking.status }}
+                </span>
+                {% if booking.delivery_type == "Doorstep" %}
+                <span class="badge" style="background:rgba(99,102,241,0.15);color:#4f46e5;font-weight:700;font-size:12px;padding:5px 10px;border-radius:8px;">
+                    <i class="bi bi-house-door me-1"></i>Doorstep
+                </span>
+                {% else %}
+                <span class="badge" style="background:rgba(14,165,233,0.15);color:#0284c7;font-weight:700;font-size:12px;padding:5px 10px;border-radius:8px;">
+                    <i class="bi bi-geo-alt me-1"></i>Self Pickup
+                </span>
+                {% endif %}
+            </div>
+            <p class="mb-0 text-muted small mt-1">Created on {{ booking.created_at|date:"d M Y, h:i A" }}</p>
+        </div>
+    </div>
+
+    <!-- Direct Status Bar & Header Action Controls -->
+    <div class="page-header-actions d-flex align-items-center gap-2 flex-wrap">
+        <!-- Direct Quick Status Selector -->
+        <div class="input-group input-group-sm shadow-sm" style="width: auto;">
+            <span class="input-group-text bg-white border-end-0 fw-bold text-secondary" style="font-size:12px;">
+                <i class="bi bi-sliders me-1 text-primary"></i> Set Status:
+            </span>
+            <select id="directStatusSelect" class="form-select form-select-sm border-start-0" style="min-width: 140px; font-weight:600; font-size:12px;">
+                <option value="Confirmed" {% if booking.status == "Confirmed" %}selected{% endif %}>Confirmed</option>
+                <option value="Pickup" {% if booking.status == "Pickup" %}selected{% endif %}>Pickup (Self)</option>
+                <option value="Drop Off" {% if booking.status == "Drop Off" %}selected{% endif %}>Drop Off (Doorstep)</option>
+                <option value="Active" {% if booking.status == "Active" %}selected{% endif %}>Active</option>
+                <option value="Completed" {% if booking.status == "Completed" %}selected{% endif %}>Completed</option>
+                <option value="Cancelled" {% if booking.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                <option value="Pending" {% if booking.status == "Pending" %}selected{% endif %}>Pending</option>
+            </select>
+            <button class="btn btn-primary btn-sm fw-bold px-3" id="btnDirectSetStatus" onclick="applyDirectStatusChange('{{ booking.booking_id }}', this)">
+                <i class="bi bi-check2"></i> Apply
+            </button>
+        </div>
+
+        <!-- 1-Click Fast Workflow Action based on Delivery Type -->
+        {% if booking.delivery_type == "Self Pickup" %}
+        <button class="btn btn-info btn-sm text-white fw-bold shadow-sm" id="btnQuickPickup" onclick="quickSetStatus('{{ booking.booking_id }}', 'Pickup', this)" title="Fulfill customer Self Pickup">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Set Status: Pickup
+        </button>
+        {% elif booking.delivery_type == "Doorstep" %}
+        <button class="btn btn-primary btn-sm text-white fw-bold shadow-sm" id="btnQuickDropOff" onclick="quickSetStatus('{{ booking.booking_id }}', 'Drop Off', this)" title="Fulfill Doorstep delivery">
+            <i class="bi bi-truck me-1"></i> Set Status: Drop Off
+        </button>
+        {% endif %}
+
+        {% if booking.status != "Completed" and booking.status != "Cancelled" %}
+        <button class="btn btn-success btn-sm fw-semibold shadow-sm" onclick="quickSetStatus('{{ booking.booking_id }}', 'Completed', this)">
+            <i class="bi bi-check-circle me-1"></i> Complete
+        </button>
+        {% endif %}
+
+        <!-- More Actions Dropdown -->
+        <!-- <div class="dropdown">
+            <button class="btn btn-outline-custom btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                More Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:12px;">
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditModal('booking', '{{ booking.booking_id }}', this)"><i class="bi bi-pencil me-2 text-primary"></i>Edit Full Details</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase" style="font-size:10px;">Quick Set Status</h6></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Confirmed', this)"><i class="bi bi-check-lg me-2 text-success"></i>Confirmed</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Pickup', this)"><i class="bi bi-box-arrow-in-right me-2 text-info"></i>Pickup (Self Pickup)</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Drop Off', this)"><i class="bi bi-truck me-2 text-primary"></i>Drop Off (Doorstep)</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Active', this)"><i class="bi bi-play-circle me-2 text-success"></i>Active (Trip ongoing)</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Completed', this)"><i class="bi bi-check2-circle me-2 text-dark"></i>Completed</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="quickSetStatus('{{ booking.booking_id }}', 'Cancelled', this)"><i class="bi bi-x-circle me-2"></i>Cancel Booking</a></li>
+            </ul>
+        </div> -->
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Booking Summary -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5 style="border-bottom:none;padding-bottom:0;margin-bottom:12px;"><i class="bi bi-box-seam me-2 text-accent"></i>Delivery Type</h5>
+                    <div class="cell-bold" style="font-size:14px;">
+                        {% if booking.delivery_type == "Doorstep" %}
+                        <span class="badge" style="background:rgba(99,102,241,0.15);color:#4f46e5;font-weight:700;font-size:12px;padding:5px 10px;border-radius:8px;">
+                            <i class="bi bi-house-door me-1"></i>Doorstep
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background:rgba(14,165,233,0.15);color:#0284c7;font-weight:700;font-size:12px;padding:5px 10px;border-radius:8px;">
+                            <i class="bi bi-geo-alt me-1"></i>Self Pickup
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Change Delivery Type Quick Selector -->
+                    <div class="mt-2 pt-2 border-top">
+                        <span style="font-size:10px;color:var(--text-secondary);font-weight:600;display:block;margin-bottom:3px;">Change Delivery Type:</span>
+                        <select class="form-select form-select-sm" style="font-size:11px;padding:3px 6px;" onchange="quickUpdateDeliveryType('{{ booking.booking_id }}', this.value, this)">
+                            <option value="Self Pickup" {% if booking.delivery_type != "Doorstep" %}selected{% endif %}>Self Pickup</option>
+                            <option value="Doorstep" {% if booking.delivery_type == "Doorstep" %}selected{% endif %}>Doorstep</option>
+                        </select>
+                    </div>
+
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
+                        Fulfillment: <b class="text-dark">{{ booking.pickup_drop_status|default:"Scheduled" }}</b>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
+                        {% if booking.delivery_type == "Doorstep" %}
+                        Vendor/Admin status: <b>Drop Off</b>
+                        {% else %}
+                        Vendor/Admin status: <b>Pickup</b>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5 style="border-bottom:none;padding-bottom:0;margin-bottom:12px;"><i class="bi bi-person me-2 text-accent"></i>Customer</h5>
+                    <div class="cell-bold" style="font-size:14px;">{{ booking.customer.full_name }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">{{ booking.customer.phone }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">{{ booking.customer.email }}</div>
+                    <a href="{% url 'admin_customer_detail' booking.customer.customer_id %}" class="btn btn-sm btn-light mt-2" style="font-size:11px;">View Profile →</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5 style="border-bottom:none;padding-bottom:0;margin-bottom:12px;"><i class="bi bi-truck me-2 text-accent"></i>Vehicle</h5>
+                    <div class="cell-bold" style="font-size:14px;">{{ booking.vehicle.brand }} {{ booking.vehicle.model }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">{{ booking.vehicle.vehicle_number }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">{{ booking.vehicle.category.name|default:"Two Wheeler" }}</div>
+                    <a href="{% url 'admin_vehicle_detail' booking.vehicle.vehicle_id %}" class="btn btn-sm btn-light mt-2" style="font-size:11px;">View Vehicle →</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5 style="border-bottom:none;padding-bottom:0;margin-bottom:12px;"><i class="bi bi-calendar3 me-2 text-accent"></i>Rental Status</h5>
+                    <div class="cell-bold" style="font-size:14px;">{{ booking.status }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">Payment: {{ booking.payment_status }}</div>
+                    <div style="font-size:11px;color:var(--text-secondary);">Total: ₹{{ booking.total_amount }}</div>
+                    <span class="status-badge {% if booking.status == 'Active' or booking.status == 'Pickup' %}badge-active{% elif booking.status == 'Confirmed' or booking.status == 'Drop Off' %}badge-confirmed{% elif booking.status == 'Completed' %}badge-completed{% else %}badge-cancelled{% endif %} mt-2">{{ booking.status }}</span>
+                    <!-- Quick status buttons inside card -->
+                    <div class="mt-2 pt-2 border-top d-flex gap-1 flex-wrap">
+                        {% if booking.status != "Pickup" %}
+                        <button class="btn btn-xs btn-outline-info py-0 px-2" style="font-size:10px;" onclick="quickSetStatus('{{ booking.booking_id }}', 'Pickup', this)">Set Pickup</button>
+                        {% endif %}
+                        {% if booking.status != "Drop Off" %}
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size:10px;" onclick="quickSetStatus('{{ booking.booking_id }}', 'Drop Off', this)">Set Drop Off</button>
+                        {% endif %}
+                        {% if booking.status != "Completed" %}
+                        <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:10px;" onclick="quickSetStatus('{{ booking.booking_id }}', 'Completed', this)">Complete</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup & Drop Details -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5><i class="bi bi-geo-alt me-2" style="color:var(--success);"></i>Pickup Details</h5>
+                    <div class="detail-row"><div class="detail-label">Pickup Hub</div><div class="detail-value cell-bold">{{ booking.pickup_location.name|default:"Ranchi Station Hub" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Pickup Address</div><div class="detail-value">{{ booking.pickup_location.address|default:"Near Platform 1, Ranchi Junction" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Pickup Date</div><div class="detail-value cell-bold">{{ booking.start_datetime|date:"d M Y" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Pickup Time</div><div class="detail-value cell-bold">{{ booking.start_datetime|date:"h:i A" }}</div></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-card" style="margin-bottom:0;">
+                    <h5><i class="bi bi-geo-alt-fill me-2" style="color:var(--danger);"></i>Drop Details</h5>
+                    <div class="detail-row"><div class="detail-label">Drop Hub</div><div class="detail-value cell-bold">{{ booking.drop_location.name|default:"Ranchi Station Hub" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Drop Address</div><div class="detail-value">{{ booking.drop_location.address|default:"Near Platform 1, Ranchi Junction" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Return Date</div><div class="detail-value cell-bold">{{ booking.end_datetime|date:"d M Y" }}</div></div>
+                    <div class="detail-row"><div class="detail-label">Return Time</div><div class="detail-value cell-bold">{{ booking.end_datetime|date:"h:i A" }}</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="detail-card">
+            <h5><i class="bi bi-credit-card me-2 text-accent"></i>Payment Summary</h5>
+            <div class="detail-row"><div class="detail-label">Rental Charge</div><div class="detail-value">₹{{ booking.rental_amount }}</div></div>
+            <div class="detail-row"><div class="detail-label">Security Deposit</div><div class="detail-value">₹{{ booking.deposit_amount }}</div></div>
+            <div class="detail-row" style="border-top:2px solid var(--text);padding-top:12px;margin-top:8px;">
+                <div class="detail-label" style="font-weight:700;font-size:15px;color:var(--text);">Total Amount</div>
+                <div class="detail-value" style="font-weight:700;font-size:18px;color:var(--text);">₹{{ booking.total_amount }}</div>
+            </div>
+            <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge {% if booking.payment_status == 'Paid' %}badge-paid{% else %}badge-pending{% endif %}">{{ booking.payment_status }}</span></div></div>
+        </div>
+    </div>
+
+    <!-- Right Column - Timeline -->
+    <div class="col-lg-4">
+        <div class="detail-card">
+            <h5><i class="bi bi-clock-history me-2 text-accent"></i>Status Overview</h5>
+            <div class="status-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot completed"><i class="bi bi-check"></i></div>
+                    <div class="timeline-content">
+                        <h6>Booking Created</h6>
+                        <p>{{ booking.created_at|date:"d M Y, h:i A" }}</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot {% if booking.payment_status == 'Paid' %}completed{% else %}pending{% endif %}">
+                        {% if booking.payment_status == 'Paid' %}<i class="bi bi-check"></i>{% endif %}
+                    </div>
+                    <div class="timeline-content">
+                        <h6>Payment ({{ booking.payment_status }})</h6>
+                        <p>₹{{ booking.total_amount }}</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot {% if booking.status == 'Active' or booking.status == 'Completed' %}completed{% else %}active{% endif %}">
+                        <i class="bi bi-check"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h6>Current Status: {{ booking.status }}</h6>
+                        <p>Updated {{ booking.updated_at|date:"d M Y, h:i A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.applyDirectStatusChange = async function(bookingId, btn) {
+    const select = document.getElementById('directStatusSelect');
+    if (!select) return;
+    const newStatus = select.value;
+    await window.executeBookingStatusUpdate(bookingId, { status: newStatus }, btn);
+};
+
+window.quickSetStatus = async function(bookingId, newStatus, btn) {
+    await window.executeBookingStatusUpdate(bookingId, { status: newStatus }, btn);
+};
+
+window.quickUpdateDeliveryType = async function(bookingId, newDeliveryType, selectEl) {
+    if (selectEl) selectEl.disabled = true;
+    try {
+        await window.executeBookingStatusUpdate(bookingId, { delivery_type: newDeliveryType }, null);
+    } finally {
+        if (selectEl) selectEl.disabled = false;
+    }
+};
+
+window.executeBookingStatusUpdate = async function(bookingId, payload, btn) {
+    let originalHtml = '';
+    if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Updating...';
+    }
+
+    try {
+        const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : '') || '';
+        const res = await fetch(`/api/bookings/${bookingId}/status/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success !== false) {
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Status updated successfully!', 'success');
+            } else {
+                alert(data.message || 'Status updated successfully!');
+            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } else {
+            const errMsg = data.error || data.message || 'Failed to update status';
+            if (typeof showToast === 'function') {
+                showToast(errMsg, 'danger');
+            } else {
+                alert('Error: ' + errMsg);
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') {
+            showToast('Network error: ' + err.message, 'danger');
+        } else {
+            alert('Network error: ' + err.message);
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+};
+</script>
+{% endblock %}
